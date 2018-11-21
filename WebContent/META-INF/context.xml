@@ -1,0 +1,17 @@
+<Context path="/photoProject" docBase="www">
+<Resource
+        auth="Container"
+        driverClassName = "org.mariadb.jdbc.Driver"
+        url="jdbc:mariadb://218.149.135.58:3306/photoProject"
+        username="ilovepc"
+        password="1q2w3e4r!"
+        name="jdbc/photoProject"
+        type="javax.sql.DataSource"
+        maxActive="20"
+        maxIdle="10"
+        maxWait="-1"
+   		 />
+	   <ResourceLink type="javax.sql.data.DataSource"
+	   		name = "jdbc/photoProject"
+	   		global = "jdbc/photoProject"/>
+</Context>
