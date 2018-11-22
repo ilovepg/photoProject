@@ -449,18 +449,23 @@
        	
        	//제목이 바뀌었는지 체크
         if(original_subject!==subject){
-        	console.log('제목 체인지 됨');
+        	console.log("제목 체인지 됨");
         }
        	
        	//한줄평이 바뀌었는지 체크
        	if(original_review!==a_line_review){
-       		console.log('한줄평 체인지 됨');
+       		console.log("한줄평 체인지 됨");
        	}
         
        	//태그가 바뀌었는지 체크
        	var tagIsChanged=originalValueChange();
        	if(tagIsChanged==true){
        		console.log("태그 값 또는 순서가 체인지됨");
+       	}
+       	
+       	//메인사진이 바뀌었는지 체크 (mainPhotoArray에 값이 있다면 메인사진은 변경된것)
+       	if(mainPhotoArray[0]!='undefined'){
+       		console.log("메인사진 체인지됨");
        	}
        	
        	
