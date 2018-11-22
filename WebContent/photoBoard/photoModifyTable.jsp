@@ -181,12 +181,12 @@
 		var original_subject; //사용자가 제목을 바꾸었는지 알기 위해서 전역변수로 제목을 선언한 후 비교한다. 
 		var original_review; //사용자가 한줄평을 바꾸었는지 알기 위해서 전역변수로 한줄평을 선언한 후 비교한다.
 		var original_tags=[]; //사용자가 태그를 변경하였는지 (태그는 순서가 변경되었더라도 변경된것으로 판단한다.)
+		var original_contents={}; //사용자가 서브사진 내용을 변경하였는지 확인하기 위한 객체
 		
-		//사용자가 지운 서브사진 리스트
-		var delList = [];
-		
-    	
-		
+		//서브사진 수정사항
+		var updateList = {}; //사용자가 수정한 서브사진 리스트 (객체로 만든 이유는 subPhotoNo를 key, File을 name으로 하기위해서)
+		var updateContentList = {}; //사용자가 수정한 서브사진 내용 (객체로 만든 이유는 subPhotoNo를 key, File을 name으로 하기위해서)
+		var delList = []; //사용자가 지운 서브사진 리스트
 		
 		//페이지 로딩이 완료된 후 실행되어 수정 데이터들을 SET 시킨다.
 		window.onload = function (){
@@ -270,6 +270,8 @@
 			subPhoto.src = subImg; //서브사진 SET
 			subPhotosExplain.value=subPhotoExplain; //서브사진 내용 SET
 			subPhotoImgIndex--;
+			
+			original_contents[photoSubNo]=subPhotoExplain; //원본 서브사진 내용을 넣는다.
 		} 
 	}
 	
@@ -313,9 +315,11 @@
         reader.readAsDataURL(file);
         mainPhotoArray.splice(0, 1, file); //배열에 index의 파일을 먼저 지우고(있으면) 배열에 삽입
       }
+      
       // 서브이미지 선택시 미리보기 (수정시에 활용될듯)
       function previewSubPhoto(e){
-        var index = parseInt(e.id.substr(e.id.length - 1)); //id값의 끝문자를 가져오면 몇번째 행인지 알수있는 인덱스가 된다. (여기서는 넘어온 객체의 id값이므로 아래 주석처리된 코드를 안써도된다.)
+    	var photoSubNo=e.getAttribute("photoSubNo"); //해당 사진의 DB 고유값 (새로 추가된 사진이 아니라면 이 값이 있을 것이다.)
+    	var index = parseInt(e.id.substr(e.id.length - 1)); //id값의 끝문자를 가져오면 몇번째 행인지 알수있는 인덱스가 된다. (여기서는 넘어온 객체의 id값이므로 아래 주석처리된 코드를 안써도된다.)
         //var index = $(e).parent().parent().closest('tr').prevAll().length; //index값을 가져온다.
         var subimg = document.getElementById('subPhotoImg'+index); //해당 인덱스(행)에 해당하는 이미지 태그를 가져온다.
         //선택한 이미지를 FileReader로 읽어서 이미지의 src속성에 넣어주는 부분.
@@ -325,34 +329,15 @@
               subimg.src = event.target.result;
         }
         reader.readAsDataURL(file);
-        sel_files.splice(index, 1, file); //배열에 index의 파일을 먼저 지우고(있으면) 배열에 삽입
+        
+        if(photoSubNo=='undefined'){ //photoSubNo가 undefined라는 것은 새로 추가된 사진이란 것임.
+        	sel_files.splice(index, 1, file); //배열에 index의 파일을 먼저 지우고(있으면) 배열에 삽입
+        }else{
+    		updateList[photoSubNo]=file;//업데이트 리스트에 추가한다.
+    	}
       }
-
-
-      //tfoot의 '추가하기' 버튼을 누르면 row를 하나씩 추가하는 함수 (바닐라JavaScript는 tr과 td에 스타일이 안들어감.)
-      /* function tableRowAdd(){
-        subPhotosCounter++; //인덱스 변수 +1;
-        var subPhotoUpload="onclick="+"clickEventAction('subPhotoUpload',this);"; //서브이미지 클릭했을 때 onclick 이벤트.
-        var html='';
-        html+='<tr style="height:180px;">';
-        html+='  <td valign="top">';
-        html+='    <img style="margin:0 auto;" id="subPhotoImg'+subPhotosCounter+'" '+subPhotoUpload+' src="./Resource/images//photoplus.png"/>';
-        html+='    <input type="file" id="subPhotos'+subPhotosCounter+'" name="subPhotos'+subPhotosCounter+'" class="show-for-sr" onchange="previewSubPhoto(this);">';
-        html+='    <div style="text-align:center; margin-top:10px;">';
-        html+='      <img src="./Resource/images//photozoom.png" onclick="imagesZoom(this);">';
-        html+='    </div>';
-        html+='  </td>';
-        html+='  <td style="height:150px;">';
-        html+='    <label style="height:100%; width:100%;">';
-        html+='      <textarea style="height:100%; width:100%;" id="subPhotosExplain'+subPhotosCounter+'" name="subPhotosExplain'+subPhotosCounter+'" placeholder="사진에 대해 설명해주세요."></textarea>';
-        html+='    </label>';
-        html+='  </td>';
-        html+='  <td>';
-        html+='    <button type="button" class="button alert" onclick="removeTableSpecifiedRow(this);"><img src="./Resource/images//imgRemoveBtn.png"/></button>';
-        html+='  </td>';
-        html+='</tr>';
-        $('#subPhotosTable > tbody:last').append(html); //하단에 추가.
-      } */
+	  
+      
       /*
       tfoot의 '추가하기' 버튼을 누르면 row를 하나씩 추가하는 함수 (바닐라JavaScript는 tr과 td에 스타일이 안들어감.)
       @Param photoSubNo - DB 내에서의 해당 사진의 고유 번호
@@ -372,7 +357,7 @@
           html+='  </td>';
           html+='  <td style="height:150px;">';
           html+='    <label style="height:100%; width:100%;">';
-          html+='      <textarea style="height:100%; width:100%;" id="subPhotosExplain'+subPhotosCounter+'" name="subPhotosExplain'+subPhotosCounter+'" placeholder="사진에 대해 설명해주세요."></textarea>';
+          html+='      <textarea style="height:100%; width:100%;" onchange="originalSubContentsValueChangeListener(this)" id="subPhotosExplain'+subPhotosCounter+'" photoSubNo="'+photoSubNo+'" photoOwnNo="'+photoOwnNo+'" name="subPhotosExplain'+subPhotosCounter+'" placeholder="사진에 대해 설명해주세요."></textarea>';
           html+='    </label>';
           html+='  </td>';
           html+='  <td>';
@@ -405,6 +390,11 @@
        	if(del_photosubno != 'undefined'){// (인덱스가 1부터 시작하므로 -1을 해준다.)
        		//수정페이지에서 새로 추가한 사진을 지우는 것이 아니라 원래 있던 사진을 지우는 것이라면 delList에 추가해서 서버로 보낸다.
        		delList.push(del_photosubno);
+       		var result=isContainUpdateList(del_photosubno);
+       		if(result==true){ //updateList에 값이 있었다면 updateList에서 빼준다.
+       			delete updateList[del_photosubno];
+       			
+       		}
        	} 
        	
         $(e).parent().parent().remove(); //e.parent == td, td.parent == tr이겠지?
@@ -437,7 +427,7 @@
         //동적 생성할 때 index값으로 쓰이는 변수 또한 -1 시켜줘야한다.
         subPhotosCounter--;
       }
-
+      
       //submit 버튼을 눌렀을 때 실행되는 함수
       //업로드 준비
       function submitAction(){
@@ -447,31 +437,7 @@
        	var subject = document.getElementById("photo_subject").value; //제목
        	var a_line_review = document.getElementById("photo_a_line_review").value; //한줄평
        	
-       	//제목이 바뀌었는지 체크
-        if(original_subject!==subject){
-        	console.log("제목 체인지 됨");
-        }
-       	
-       	//한줄평이 바뀌었는지 체크
-       	if(original_review!==a_line_review){
-       		console.log("한줄평 체인지 됨");
-       	}
-        
-       	//태그가 바뀌었는지 체크
-       	var tagIsChanged=originalValueChange();
-       	if(tagIsChanged==true){
-       		console.log("태그 값 또는 순서가 체인지됨");
-       	}
-       	
-       	//메인사진이 바뀌었는지 체크 (mainPhotoArray에 값이 있다면 메인사진은 변경된것)
-       	if(mainPhotoArray[0]!='undefined'){
-       		console.log("메인사진 체인지됨");
-       	}
-       	
-       	
-        return ;
-       	
-       	//제목이 입력되지 않았다면
+      	//제목이 입력되지 않았다면
        	if(!subject || subject.replace(blank_pattern, '')==""){
        		alert('제목을 입력해주세요.');
        		document.getElementById("photo_subject").focus();
@@ -484,6 +450,47 @@
        		document.getElementById("photo_a_line_review").focus();
        		return ;
        	}
+       	
+       	//제목이 바뀌었는지 체크
+        if(original_subject!==subject){
+        	console.log("제목 체인지 됨");
+        	data.append("subject",subject); //제목을 넣어준다.
+        }
+       	
+       	//한줄평이 바뀌었는지 체크
+       	if(original_review!==a_line_review){
+       		console.log("한줄평 체인지 됨");
+       		data.append("a_line_review",a_line_review); //한줄평을 넣어준다.
+       	}
+        
+       	//태그가 바뀌었는지 체크
+       	var tagIsChanged=originalTagValueChange();
+       	if(tagIsChanged==true){
+       		console.log("태그 값 또는 순서가 체인지됨");
+       		//태그 데이터를 가져온 후 넣어준다.
+    		var temp_tags = marginTag(); 
+    		data.append("tags",temp_tags);
+       	}
+       	
+       	//메인사진이 바뀌었는지 체크 (mainPhotoArray에 값이 있다면 메인사진은 변경된것)
+       	if(mainPhotoArray[0] != undefined){
+       		console.log("메인사진 체인지됨"+mainPhotoArray[0]);
+       		//mainPhotos 이미지만 업로드 가능하게 MIME 형식 검사
+            mainPhotoArray.forEach(function(f){
+              if(!f.type.match("image.*")) {
+                alert("이미지만 업로드 가능합니다.");
+                return;
+              }
+            })
+    		
+            //formData에 image append
+            data.append("imageMain",mainPhotoArray[0]); //메인 이미지 data에 append
+            
+       	}
+       	
+        return ;
+       	
+       	
        	
        	//사진들의 내용을 차례대로 배열에 삽입.
         for(var i=0; i<=subPhotosCounter; i++){
@@ -504,16 +511,6 @@
             return;
           }
         })
-        //mainPhotos 이미지만 업로드 가능하게 MIME 형식 검사
-        mainPhotoArray.forEach(function(f){
-          if(!f.type.match("image.*")) {
-            alert("이미지만 업로드 가능합니다.");
-            return;
-          }
-        })
-		
-        //formData에 image append
-        data.append("imageMain",mainPhotoArray[0]); //메인 이미지 data에 append
         
         for(var i=0, len=sel_files.length; i<len; i++) {
             var file_name = "image_"+i; //해당 file의 parameter name
@@ -523,13 +520,10 @@
 			data.append(content_name,contentArray[i]);
 			
         }
-        data.append("subject",subject); //제목을 넣어준다.
 		data.append("length",sel_files.length-1); //몇개의 이미지가 있는지 넣어준다. (사진의 내용을 사용할 때도 같이 사용될것이다.)
-        data.append("a_line_review",a_line_review);
+        
 		
-		//태그 데이터를 가져온다.
-		var temp_tags = marginTag();
-		data.append("tags",temp_tags);
+		
 		
 		//ajax 통신 (jQuery를 이용하지 않고 바닐라 JavaScript로 한다.)
         var xhr = new XMLHttpRequest(); 
@@ -604,20 +598,17 @@
    					 return word === tagValue; 
    				  });
    		
-   			  //위에서 같은 태그 있는지 검사한 결과 0이면 통과, 0이 아니라면 중복값 발견
-   			  if(result.length == 0){
-   				  $("#tag-list").append("<li class='tag-item'>"+tagValue+"<span class='del-btn' idx='"+tag_counter+"'>x</span></li>");
-   				  addTag(tagValue);
-   				  self.val("");
-   			  }else{
-   				  alert("태그 값이 이미 있습니다.");
-   			  }
+	   			  //위에서 같은 태그 있는지 검사한 결과 0이면 통과, 0이 아니라면 중복값 발견
+	   			  if(result.length == 0){
+	   				  $("#tag-list").append("<li class='tag-item'>"+tagValue+"<span class='del-btn' idx='"+tag_counter+"'>x</span></li>");
+	   				  addTag(tagValue);
+	   				  self.val("");
+	   			  }else{
+	   				  alert("태그 값이 이미 있습니다.");
+	   			  }
    			  	
    			  }
    			  e.preventDefault(); //SpaceBar 할 때 빈 공간이 생기지 않도록 방지
-   			  
-   			 
-
    		  }
 
    	  });
@@ -631,7 +622,7 @@
     });
 
 	//태그가 바뀌었는지 확인
-	function originalValueChange(){
+	function originalTagValueChange(){
 		//원본태그와 현재태그의 개수 중 큰 값을 찾아서 for문의 루프로 활용
 		var tagSize=0;
 		var originalSize=original_tags.length;
@@ -655,10 +646,20 @@
 			}
 		}
 		return false; //안바뀌었다면 false
-		
 	}
-   	 
-   	  
+   	
+	function originalSubContentsValueChangeListener(subPhotoContent){
+		var photoSubNo = subPhotoContent.getAttribute('photoSubNo'); //방금 변경한 컨텐츠의 DB 고유번호
+		var compareValue = subPhotoContent.value; //방금 변경한 컨텐츠의 내용
+		var original=original_contents[photoSubNo]; //원본 컨텐츠의 내용
+		
+		if(compareValue !== original){
+			updateContentList[photoSubNo]=compareValue; //해당 고유번호 컨텐츠의 변경한 내용을 넣어준다.
+		}else{ 
+			delete updateContentList[photoSubNo]; //같아졌다면 굳이 서버에 보낼 필요가 없지.
+		}
+	}
+	
 	//객체의 사이즈 출력
    	Object.size = function (obj){
 		var size=0;
@@ -667,8 +668,22 @@
    		}
 		return size;
    	 }
-
-      
+	
+   	/*배열값에 중복된값이 있는지 체크하는 함수*/
+    function arrayDuplicateCheck(array,compareValue){
+  	var result = array.filter(function (word){
+			return word === compareValue; 
+		});
+  	return result;
+    }
+	
+  	//업데이트 리스트에 해당 photoSubNo가 있는지 확인
+    function isContainUpdateList(photoSubNo){
+  	  for(var key in updateList){
+  		  if(key==photoSubNo) return true;
+  	  }
+  	  return false;
+    }
     </script>
 
 
