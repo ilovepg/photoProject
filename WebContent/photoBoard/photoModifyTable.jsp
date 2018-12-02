@@ -329,11 +329,19 @@
               subimg.src = event.target.result;
         }
         reader.readAsDataURL(file);
-        
+        console.log("file1:"+file);
         if(photoSubNo=='undefined'){ //photoSubNo가 undefined라는 것은 새로 추가된 사진이란 것임.
+        	console.log("file2:"+file);
         	sel_files.splice(index, 1, file); //배열에 index의 파일을 먼저 지우고(있으면) 배열에 삽입
+        	console.log("sel_files:"+sel_files[0]);
         }else{
+        	console.log("file3:"+file);
+        	/* var tempArray=[];
+        	tempArray.push(file);
+        	console.log("tempArray:"+tempArray); */
+    		//updateList[photoSubNo]=tempArray;//업데이트 리스트에 추가한다.
     		updateList[photoSubNo]=file;//업데이트 리스트에 추가한다.
+    		console.log("updateList:"+updateList[photoSubNo]);
     	}
       }
 	  
@@ -482,52 +490,75 @@
                 return;
               }
             })
-    		
             //formData에 image append
             data.append("imageMain",mainPhotoArray[0]); //메인 이미지 data에 append
-            
        	}
        	
-        return ;
-       	
-       	
-       	
-       	//사진들의 내용을 차례대로 배열에 삽입.
+       	//서브포토 내용에 공백이 있는지 확인
+       	//추가된 서브사진들의 내용을 차례대로 배열에 삽입.
         for(var i=0; i<=subPhotosCounter; i++){
-        	var content = $('#subPhotosExplain'+i).val(); //내용 value
+        	var $contentObj = $('#subPhotosExplain'+i); //TextArea 객체
+        	var photoSubNo=$contentObj.attr('photoSubNo');
+        	var content = $contentObj.val(); //내용 value
         	//내용에 공백이 있는지 확인
         	if(content == null || content.replace(blank_pattern, '')==""){
         		$('#subPhotosExplain'+i).focus(); //공백이 있다면 그곳으로 포커스 이동
         		alert('내용에 공백만 입력되었습니다 ');
         		return ;
         	}
-        	contentArray.push(content);
+        	
+        	if(photoSubNo == 'undefined'){ //photoSubNo가 정의되어있지 않다면 추가된 내용이다.
+        		contentArray.push(content);	
+        	}
         }
-        
-        //subPhotos 이미지만 업로드 가능하게 MIME 형식 검사
-        sel_files.forEach(function(f) {
-          if(!f.type.match("image.*")) {
-            alert("이미지만 업로드 가능합니다.");
-            return;
-          }
-        })
-        
-        for(var i=0, len=sel_files.length; i<len; i++) {
-            var file_name = "image_"+i; //해당 file의 parameter name
-			var content_name = "content_"+i; //사진에 대한 내용
-           	
-            data.append(file_name, sel_files[i]);
-			data.append(content_name,contentArray[i]);
+       	
+       	if(sel_files.length>0){ //추가된 서브포토가 있다면
+       		//subPhotos 이미지만 업로드 가능하게 MIME 형식 검사
+            sel_files.forEach(function(f) {
+              if(!f.type.match("image.*")) {
+                alert("이미지만 업로드 가능합니다.");
+                return;
+              }
+            });
+       		
+       		//subPhotos와 contents를 formData에 넣는다.
+            for(var i=0, len=sel_files.length; i<len; i++) {
+                var file_name = "image_"+i; //해당 file의 parameter name
+    			var content_name = "content_"+i; //사진에 대한 내용
+               	
+                data.append(file_name, sel_files[i]);
+    			data.append(content_name,contentArray[i]);
+    			
+            }
+            data.append("length",sel_files.length-1); //몇개의 이미지가 있는지 넣어준다. (사진의 내용을 사용할 때도 같이 사용될것이다.)
+       	}
+
+		//서브포토 업데이트 리스트가 있는지 검사
+		//서브포토 내용 업데이트 리스트가 있는지 검사
+		//서브포토 제거 리스트가 있는지 검사
+		var updateListSize = Object.size(updateList); 
+		var updateContentListSize = Object.size(updateContentList);
+		var delListSize = delList.length;
+		if(updateListSize>0){
+			for(let key in updateList){
+				data.append("updateSubPhoto"+key,updateList[key]);	
+			}
 			
-        }
-		data.append("length",sel_files.length-1); //몇개의 이미지가 있는지 넣어준다. (사진의 내용을 사용할 때도 같이 사용될것이다.)
+		}
+		
+		if(updateContentListSize>0){
+			data.append("updateSubPhotoContent",JSON.stringify(updateContentList));
+		}
+		
+		if(delListSize>0){
+			for(var i=0; i<delListSize.length; i++){
+				data.append("delList_"+i, delList[i]);
+			}
+		}
         
-		
-		
-		
 		//ajax 통신 (jQuery를 이용하지 않고 바닐라 JavaScript로 한다.)
         var xhr = new XMLHttpRequest(); 
-        xhr.open("POST","./photoBoardUpload",false);
+        xhr.open("POST","./photoBoardModify",false);
         //xhr.responseType = 'application/x-www-form-urlencoded; charset=UTF-8;';
         xhr.onreadystatechange = function(e){ //통신이 끝났을 때 호출된다.
           if(xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 201)){ //readyState(통신상태) 4 == 완료 status(통신결과) 200 == 성공
@@ -653,10 +684,12 @@
 		var compareValue = subPhotoContent.value; //방금 변경한 컨텐츠의 내용
 		var original=original_contents[photoSubNo]; //원본 컨텐츠의 내용
 		
-		if(compareValue !== original){
-			updateContentList[photoSubNo]=compareValue; //해당 고유번호 컨텐츠의 변경한 내용을 넣어준다.
-		}else{ 
-			delete updateContentList[photoSubNo]; //같아졌다면 굳이 서버에 보낼 필요가 없지.
+		if(photoSubNo!='undefined'){ //새로 추가한 로우에 대해서는 작동하지 않게 하기
+			if(compareValue !== original){
+				updateContentList[photoSubNo]=compareValue; //해당 고유번호 컨텐츠의 변경한 내용을 넣어준다.
+			}else{ 
+				delete updateContentList[photoSubNo]; //같아졌다면 굳이 서버에 보낼 필요가 없지.
+			}	
 		}
 	}
 	
