@@ -357,7 +357,7 @@
           var html='';
           html+='<tr style="height:180px;">';
           html+='  <td valign="top">';
-          html+='    <img style="margin:0 auto;" id="subPhotoImg'+subPhotosCounter+'" '+subPhotoUpload+' src="./Resource/images//photoplus.png"/>';
+          html+='    <img style="margin:0 auto;" id="subPhotoImg'+subPhotosCounter+'" '+subPhotoUpload+' src="./Resource/images/photoplus.png"/>';
           html+='    <input type="file" id="subPhotos'+subPhotosCounter+'" photoSubNo="'+photoSubNo+'" photoOwnNo="'+photoOwnNo+'" name="subPhotos'+subPhotosCounter+'" class="show-for-sr" onchange="previewSubPhoto(this);">';
           html+='    <div style="text-align:center; margin-top:10px;">';
           html+='      <img src="./Resource/images//photozoom.png" onclick="imagesZoom(this);">';

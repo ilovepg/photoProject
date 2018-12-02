@@ -72,9 +72,6 @@
     }
 
     </style>
-    <script>
-      var subPhotosCounter=0; //JavaScript로 테이블의 행을 동적생성할 때 id값의 인덱스로 쓰일 변수
-    </script>
   </head>
   <body>
     <!-- 메인사진 상단 -->
@@ -131,7 +128,6 @@
     		    <tr style="height:180px;">
     		      <td valign="top">
                 <img style="margin:0 auto;" id="subPhotoImg0" onclick="clickEventAction('subPhotoUpload',this);" src="./Resource/images/photoplus.png"/>
-                <input type="file" id="subPhotos0" name="subPhotos0" class="show-for-sr" value="add.png" onchange="previewSubPhoto(this);" multiple/>
                 <div style="text-align:center; margin-top:10px;">
                   <img src="./Resource/images/photozoom.png" onclick="imagesZoom(this);">
                 </div>
@@ -157,22 +153,25 @@
           </tfoot>
   	     </table>
        <form>
+    <input type="file" id="subPhotos0" name="subPhotos0" class="show-for-sr" value="add.png" onchange="previewSubPhoto(this);" multiple/>
     <script src="./Resource/assets/js/vendor/jquery.js"></script>
     <script src="./Resource/assets/js/vendor/what-input.js"></script>
     <script src="./Resource/assets/js/vendor/foundation.js"></script>
     <script src="./Resource/assets/js/app.js"></script>
     <script>
-
-      // 업로드될 이미지 정보들, 제목을 담을 변수들
+   	  var subPhotosCounter=0; //JavaScript로 테이블의 행을 동적생성할 때 id값의 인덱스로 쓰일 변수
+      
+   	  // 업로드될 이미지 정보들, 제목을 담을 변수들
       var sel_files = [];
       var mainPhotoArray = []; 
 	  var subject;
-      
+      var clickedImgIndex = 0; //내가 클릭한 이미지 인덱스
+
       //Param (분기하기위한 문자열, img객체)
       function clickEventAction(st,e){
         console.log("clickEventAction");
         var index = $(e).parent().parent().closest('tr').prevAll().length; //index값을 가져온다.
-        console.log("index값:"+index);
+        
         switch (st) {
           case "mainPhotoUpload":
             $("#mainPhoto").trigger('click');
@@ -190,8 +189,10 @@
                 }
               });
             }
-
-            $("#subPhotos"+index).trigger('click');
+            console.log("index값:"+index);
+            clickedImgIndex=index; //전역변수에 클릭한 인덱스를 보내준다.
+            //$("#subPhotos"+index).trigger('click');
+            $("#subPhotos0").trigger('click');
             break;
         }
       }
@@ -210,17 +211,30 @@
       }
       // 서브이미지 선택시 미리보기 (수정시에 활용될듯)
       function previewSubPhoto(e){
-        var index = parseInt(e.id.substr(e.id.length - 1)); //id값의 끝문자를 가져오면 몇번째 행인지 알수있는 인덱스가 된다. (여기서는 넘어온 객체의 id값이므로 아래 주석처리된 코드를 안써도된다.)
+    	var index = clickedImgIndex; //클릭한 행
+        var lastRowCount = subPhotosCounter+1; //
+    	//var index = parseInt(e.id.substr(e.id.length - 1)); //id값의 끝문자를 가져오면 몇번째 행인지 알수있는 인덱스가 된다. (여기서는 넘어온 객체의 id값이므로 아래 주석처리된 코드를 안써도된다.)
         //var index = $(e).parent().parent().closest('tr').prevAll().length; //index값을 가져온다.
-        var subimg = document.getElementById('subPhotoImg'+index); //해당 인덱스(행)에 해당하는 이미지 태그를 가져온다.
-        //선택한 이미지를 FileReader로 읽어서 이미지의 src속성에 넣어주는 부분.
-        var file = e.files[0],
-            reader = new FileReader();
-        reader.onload = function (event) {
-              subimg.src = event.target.result;
+        //Array.prototype.push.apply(sel_files, e.files);
+       	
+       	
+       	
+        for(var i=0; i<e.files.length; i++){
+        	sel_files.splice(index, e.files.length, e.files[i]); //배열에 index의 파일을 먼저 지우고(있으면) 배열에 삽입
+        	let subimg = document.getElementById('subPhotoImg'+index); //해당 인덱스(행)에 해당하는 이미지 태그를 가져온다.
+        	//console.log(subimg);
+        	//console.log(e.files[i]);
+        	//선택한 이미지를 FileReader로 읽어서 이미지의 src속성에 넣어주는 부분.
+            let file = e.files[i];
+            let reader = new FileReader();
+            reader.onload = function (event) {
+                  subimg.src = event.target.result;
+            }
+            reader.readAsDataURL(file);
+        	index++;
         }
-        reader.readAsDataURL(file);
-        sel_files.splice(index, 1, file); //배열에 index의 파일을 먼저 지우고(있으면) 배열에 삽입
+        console.log(sel_files);
+        //sel_files.splice(index, 1, file); //배열에 index의 파일을 먼저 지우고(있으면) 배열에 삽입
       }
 
 
@@ -231,8 +245,7 @@
         var html='';
         html+='<tr style="height:180px;">';
         html+='  <td valign="top">';
-        html+='    <img style="margin:0 auto;" id="subPhotoImg'+subPhotosCounter+'" '+subPhotoUpload+' src="./Resource/images//photoplus.png"/>';
-        html+='    <input type="file" id="subPhotos'+subPhotosCounter+'" name="subPhotos'+subPhotosCounter+'" class="show-for-sr" onchange="previewSubPhoto(this);">';
+        html+='    <img style="margin:0 auto;" id="subPhotoImg'+subPhotosCounter+'" '+subPhotoUpload+' src="./Resource/images/photoplus.png"/>';
         html+='    <div style="text-align:center; margin-top:10px;">';
         html+='      <img src="./Resource/images//photozoom.png" onclick="imagesZoom(this);">';
         html+='    </div>';
