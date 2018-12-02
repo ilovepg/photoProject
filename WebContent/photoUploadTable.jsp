@@ -76,8 +76,6 @@
   <body>
     <!-- 메인사진 상단 -->
     <h3 style="margin-top:50px; text-align:center;">메인사진</h3>
-
-    <form action="uploadDo" method="post" enctype="multipart/form-data" name="uploadForm">
       <div class="text-center" style="margin-bottom:20px;">
         <img id="mainPhotoImg" onclick="clickEventAction('mainPhotoUpload',this);" src="./Resource/images/photoplus.png"/>
         <input type="file" id="mainPhoto" name="mainPhoto" class="show-for-sr" onchange="previewMainPhoto(this);"/>
@@ -152,16 +150,18 @@
             </tr>
           </tfoot>
   	     </table>
-       <form>
+       
     <input type="file" id="subPhotos0" name="subPhotos0" class="show-for-sr" value="add.png" onchange="previewSubPhoto(this);" multiple/>
     <script src="./Resource/assets/js/vendor/jquery.js"></script>
     <script src="./Resource/assets/js/vendor/what-input.js"></script>
     <script src="./Resource/assets/js/vendor/foundation.js"></script>
     <script src="./Resource/assets/js/app.js"></script>
+    <script src="./Resource/assets/js/etc/table-dragger.min.js"></script>
     <script>
    	  var subPhotosCounter=0; //JavaScript로 테이블의 행을 동적생성할 때 id값의 인덱스로 쓰일 변수
-      
-   	  // 업로드될 이미지 정보들, 제목을 담을 변수들
+      tableDragAndDrop('subPhotosTable'); //테이블 드래그 앤 드랍 해서 순서바꿀수 있도록 적용
+   	  
+   	  //이미지 정보들, 제목을 담을 변수들
       var sel_files = [];
       var mainPhotoArray = []; 
 	  var subject;
@@ -212,15 +212,19 @@
       // 서브이미지 선택시 미리보기 (수정시에 활용될듯)
       function previewSubPhoto(e){
     	var index = clickedImgIndex; //클릭한 행
-        var lastRowCount = subPhotosCounter+1; //
+        var lastRowCount = subPhotosCounter+1; //현재 마지막행
+        var addRow = e.files.length; //추가할 사진들 개수
+       	var toBeAddRowCount = addRow+index; //더해져야할 행
+       	while(toBeAddRowCount>lastRowCount){ //현재 행수가 부족하면 그만큼 더해준다. 
+       		lastRowCount++;
+       		tableRowAdd();
+       	}
     	//var index = parseInt(e.id.substr(e.id.length - 1)); //id값의 끝문자를 가져오면 몇번째 행인지 알수있는 인덱스가 된다. (여기서는 넘어온 객체의 id값이므로 아래 주석처리된 코드를 안써도된다.)
         //var index = $(e).parent().parent().closest('tr').prevAll().length; //index값을 가져온다.
         //Array.prototype.push.apply(sel_files, e.files);
        	
-       	
-       	
-        for(var i=0; i<e.files.length; i++){
-        	sel_files.splice(index, e.files.length, e.files[i]); //배열에 index의 파일을 먼저 지우고(있으면) 배열에 삽입
+        for(var i=0; i<addRow; i++){
+        	sel_files.splice(index, addRow, e.files[i]); //배열에 index의 파일을 먼저 지우고(있으면) 배열에 삽입
         	let subimg = document.getElementById('subPhotoImg'+index); //해당 인덱스(행)에 해당하는 이미지 태그를 가져온다.
         	//console.log(subimg);
         	//console.log(e.files[i]);
@@ -234,9 +238,7 @@
         	index++;
         }
         console.log(sel_files);
-        //sel_files.splice(index, 1, file); //배열에 index의 파일을 먼저 지우고(있으면) 배열에 삽입
       }
-
 
       //tfoot의 '추가하기' 버튼을 누르면 row를 하나씩 추가하는 함수 (jQuery 바닐라JavaScript는 tr과 td에 스타일이 안들어감.)
       function tableRowAdd(){
@@ -260,6 +262,7 @@
         html+='  </td>';
         html+='</tr>';
         $('#subPhotosTable > tbody:last').append(html); //하단에 추가.
+        tableDragAndDrop('subPhotosTable'); //테이블 드래그앤드랍해서 순서바꿀수있도록 적용
       }
 
       //zoom버튼(돋보기)누르면 원본이미지  뜨게 하는 함수 (모달로 바꿔보기..)
@@ -467,28 +470,50 @@
    			  	
    			  }
    			  e.preventDefault(); //SpaceBar 할 때 빈 공간이 생기지 않도록 방지
-   			  
-   			 
-
    		  }
-
    	  });
    	  
    	  //삭제 버튼
    	  // 삭제 버튼은 비동기적 생성이므로 document 최초 생성시가 아닌 검색을 통해 이벤트를 구현시킨다.
-        $(document).on("click", ".del-btn", function (e) {
-            var index = $(this).attr("idx");
-            delete tag[index]; //delete 키워드로 객체에서 해당 프로퍼티 삭제 (원래는 null로 해놓으면 delete보다 훨씬 빠르게 작동하지만 객체의 길이를 제한하기위해서 아예삭제하는 것으로 바꿈.)
-            $(this).parent().remove();
-        });
+      $(document).on("click", ".del-btn", function (e) {
+          var index = $(this).attr("idx");
+          delete tag[index]; //delete 키워드로 객체에서 해당 프로퍼티 삭제 (원래는 null로 해놓으면 delete보다 훨씬 빠르게 작동하지만 객체의 길이를 제한하기위해서 아예삭제하는 것으로 바꿈.)
+          $(this).parent().remove();
+      });
 
-
-		
-   	  
-   	  
-
-
-      
+	  //Drag & Drop Event Listener
+	  /* $(function(){
+		$("#subPhotosTable").tableDnD({
+			onDragClass: "myDragClass",
+			onDrop: function(table, row) {
+				var rows = table.tBodies[0].rows;
+				var debugStr = "Row dropped was "+row.id+". New order: ";
+				for (var i=0; i<rows.length; i++) {
+					debugStr += rows[i].id+" ";
+				}
+				$(table).parent().find('.result').text(debugStr);
+			},
+			onDragStart: function(table, row) {
+				$(table).parent().find('.result').text("Started dragging row "+row.id);
+			}
+		  });
+	  }); */
+	  
+	  function tableDragAndDrop(tableID){
+		  var el = document.getElementById(tableID);
+		  var dragger = tableDragger(el, {
+		    mode: 'row',
+		    onlyBody: true,
+		    animation: 300
+		  });
+		  dragger.on('drop',function(from, to){
+		    console.log(from,to);
+		  });
+	  }
+	  
+	  
+	  
+		 
     </script>
 
 
