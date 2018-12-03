@@ -482,23 +482,6 @@
       });
 
 	  //Drag & Drop Event Listener
-	  /* $(function(){
-		$("#subPhotosTable").tableDnD({
-			onDragClass: "myDragClass",
-			onDrop: function(table, row) {
-				var rows = table.tBodies[0].rows;
-				var debugStr = "Row dropped was "+row.id+". New order: ";
-				for (var i=0; i<rows.length; i++) {
-					debugStr += rows[i].id+" ";
-				}
-				$(table).parent().find('.result').text(debugStr);
-			},
-			onDragStart: function(table, row) {
-				$(table).parent().find('.result').text("Started dragging row "+row.id);
-			}
-		  });
-	  }); */
-	  
 	  function tableDragAndDrop(tableID){
 		  var el = document.getElementById(tableID);
 		  var dragger = tableDragger(el, {
@@ -508,6 +491,8 @@
 		  });
 		  dragger.on('drop',function(from, to){
 		    console.log(from,to);
+		    var movedRow = document.getElementById('subPhotoImg'+index).parent;
+		    console.log(movedRow);
 		  });
 	  }
 	  
