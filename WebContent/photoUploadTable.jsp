@@ -27,50 +27,67 @@
           cursor:pointer;
         }
         #subPhotoImg{
-          border: 1px solid black;
-          width: 100%;
-          height: 50%;
-          cursor:pointer;
+          	border: 1px solid black;
+          	width: 100%;
+         	height: 50%;
+          	cursor:pointer;
         }
+        #arrowTable{
+        	border-right: hidden;
+        	border-left: hidden;
+        	border-top: hidden;
+        	border-bottom: hidden;
+        }
+        
+        #arrowTable td{
+        	border-right: hidden;
+        	border-left: hidden;
+        	border-top: hidden;
+        	border-bottom: hidden;
+        }
+        
         .noColor{
-          background-color: white;
+          	background-color: white;
         }
         
         ul li.tag-item {
-        padding: 4px 8px;
-        background-color: #777;
-        color: #000;
-    }
+	        padding: 4px 8px;
+	        background-color: #777;
+	        color: #000;
+   		}
 
-    .tag-item:hover {
-        background-color: #262626;
-        color: #fff;
-    }
-
-    .del-btn {
-        font-size: 12px;
-        font-weight: bold;
-        cursor: pointer;
-        margin-left: 8px;
-    }
-    
-    * {
-        margin: 0;
-        padding: 0;
-        list-style: none;
-    }
-
-    ul {
-        padding: 16px 0;
-    }
-
-    ul li {
-        display: inline-block;
-        margin: 0 5px;
-        font-size: 14px;
-        letter-spacing: -.5px;
-    }
-
+	    .tag-item:hover {
+	        background-color: #262626;
+	        color: #fff;
+	    }
+	
+	    .del-btn {
+	        font-size: 12px;
+	        font-weight: bold;
+	        cursor: pointer;
+	        margin-left: 8px;
+	    }
+	    
+	    * {
+	        margin: 0;
+	        padding: 0;
+	        list-style: none;
+	    }
+	
+	    ul {
+	        padding: 16px 0;
+	    }
+	
+	    ul li {
+	        display: inline-block;
+	        margin: 0 5px;
+	        font-size: 14px;
+	        letter-spacing: -.5px;
+	    }
+		
+		/* #subPhotosTable{
+			touch-action: none;
+		} */
     </style>
   </head>
   <body>
@@ -117,6 +134,7 @@
         <table class="unstriped hover" id="subPhotosTable">
     		  <thead>
     		    <tr>
+    		      <th width="64px">순서</th>
     		      <th width="200px" class="text-center">사진</th>
     		      <th class="text-center">내용</th>
     		      <th width="150px" class="text-center"></th>
@@ -124,20 +142,44 @@
     		  </thead>
     		  <tbody>
     		    <tr style="height:180px;">
-    		      <td valign="top">
-                <img style="margin:0 auto;" id="subPhotoImg0" onclick="clickEventAction('subPhotoUpload',this);" src="./Resource/images/photoplus.png"/>
-                <div style="text-align:center; margin-top:10px;">
-                  <img src="./Resource/images/photozoom.png" onclick="imagesZoom(this);">
-                </div>
-              </td>
-    		      <td style="height:150px;">
-                <label style="height:100%; width:100%;">
-                  <textarea style="height:100%; width:100%;" id="subPhotosExplain0" name="subPhotosExplain0" placeholder="사진에 대해 설명해주세요."></textarea>
-                </label>
-              </td>
-    		      <td>
-                <button type="button" class="button alert" onclick="removeTableSpecifiedRow(this);"><img src="./Resource/images/imgRemoveBtn.png"/></button>
-              </td>
+    		    	<td>
+    		    		<table id="arrowTable">
+	    		    		<tr>
+	    		    			<td>
+	    		    				<button onclick="moveTop(this);"><img src="./Resource/images/top_arrow.png" /></button>
+	    		    			</td>
+	    		    		</tr>
+	    		    		<tr>
+	    		    			<td>
+	    		    				<button onclick="moveUp(this);"><img src="./Resource/images/up_arrow.png" /></button>
+	    		    			</td>
+	    		    		</tr>
+	    		    		<tr>
+	    		    			<td>
+	    		    				<button onclick="moveDown(this);"><img src="./Resource/images/down_arrow.png" /></button>
+	    		    			</td>
+	    		    		</tr>
+	    		    		<tr>
+	    		    			<td>
+	    		    				<button onclick="moveBottom(this);"><img src="./Resource/images/bottom_arrow.png" /></button>
+	    		    			</td>
+	    		    		</tr>
+    		    		</table>
+    		    	</td>
+    		  		<td valign="top">
+                		<img style="margin:0 auto;" id="subPhotoImg0" onclick="clickEventAction('subPhotoUpload',this);" src="./Resource/images/photoplus.png"/>
+                		<div style="text-align:center; margin-top:10px;">
+                  			<img src="./Resource/images/photozoom.png" onclick="imagesZoom(this);">
+                		</div>
+              		</td>
+    		  		<td style="height:150px;">
+                		<label style="height:100%; width:100%;">
+                  			<textarea style="height:100%; width:100%;" id="subPhotosExplain0" name="subPhotosExplain0" placeholder="사진에 대해 설명해주세요."></textarea>
+               		 	</label>
+              		</td>
+    		  		<td>
+                		<button type="button" class="button alert" onclick="removeTableSpecifiedRow(this);"><img src="./Resource/images/imgRemoveBtn.png"/></button>
+              		</td>
     		    </tr>
     		  </tbody>
           <tfoot class="noColor">
@@ -159,14 +201,81 @@
     <script src="./Resource/assets/js/etc/table-dragger.min.js"></script>
     <script>
    	  var subPhotosCounter=0; //JavaScript로 테이블의 행을 동적생성할 때 id값의 인덱스로 쓰일 변수
-      tableDragAndDrop('subPhotosTable'); //테이블 드래그 앤 드랍 해서 순서바꿀수 있도록 적용
+      //tableDragAndDrop('subPhotosTable'); //테이블 드래그 앤 드랍 해서 순서바꿀수 있도록 적용
    	  
    	  //이미지 정보들, 제목을 담을 변수들
       var sel_files = [];
       var mainPhotoArray = []; 
 	  var subject;
       var clickedImgIndex = 0; //내가 클릭한 이미지 인덱스
-
+		
+      //맨위로 이동
+      function moveTop(object){
+    	  let $tr = $(object).closet('tr').closet('tr'); 
+    	  let original_index=parentNode.rowIndex; //버튼을 누른 행의 인덱스 (1부터 시작한다.)
+    	  console.log(original_index);
+      }
+   	  //위로 이동
+      function moveUp(object){
+    	  //let parentNode = object.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode; 
+    	  //let original_index=parentNode.rowIndex; //버튼을 누른 행의 인덱스 (1부터 시작한다.)
+    	  let $tr = $(object).parent().parent().parent().parent().parent().parent(); // 클릭한 버튼이 속한 tr 요소
+    	  let trNumBefore = $tr.closest('tr').prevAll().length; //순서 바꾸기 전 index
+    	  $tr.prev().before($tr); // 현재 tr 의 이전 tr 앞에 선택한 tr 넣기 (순서 바꾸기)
+    	  let trNumAfter = $tr.closest('tr').prevAll().length; //순서 바꾼 후 index
+    	  console.log("전:",trNumBefore,"후:",trNumAfter);
+    	  //순서가 바뀌었으니 id값 변경
+    	  //img태그 id값변경
+    	  $subTextArea_before=$('#subPhotoImg'+trNumBefore); //위 tr img
+		  $subTextArea_after=$('#subPhotoImg'+trNumAfter);   //아래 tr img
+		  $subTextArea_before.attr("id","subPhotoImg"+trNumAfter);  
+		  $subTextArea_after.attr("id","subPhotoImg"+trNumBefore); 
+    	  //textArea id값,name값 변경
+		  $subTextArea_before=$('#subPhotosExplain'+trNumBefore); //위 tr textArea
+		  $subTextArea_after=$('#subPhotosExplain'+trNumAfter);   //아래 tr textArea
+		  $subTextArea_before.attr("id","subPhotosExplain"+trNumAfter);  //ID 변경
+    	  $subTextArea_after.attr("id","subPhotosExplain"+trNumBefore);
+    	  $subTextArea_before.attr("name","subPhotosExplain"+trNumAfter);  //NAME변경
+    	  $subTextArea_after.attr("name","subPhotosExplain"+trNumBefore);
+    	  //실제 파일 순서도 변경해줘야한다.
+    	  arrayOrderChanger(sel_files,trNumBefore,trNumAfter);
+    	  console.log(sel_files);
+      }
+   	  //아래로 이동
+      function moveDown(object){
+    	  //let parentNode = object.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode; 
+    	  //let original_index=parentNode.rowIndex; //버튼을 누른 행의 인덱스 (1부터 시작한다.)
+    	  let $tr = $(object).parent().parent().parent().parent().parent().parent(); // 클릭한 버튼이 속한 tr 요소
+    	  let trNumBefore = $tr.closest('tr').prevAll().length; //순서 바꾸기 전 index
+    	  $tr.next().after($tr); // 현재 tr 의 다음 tr 뒤에 선택한 tr 넣기 (순서 바꾸기)
+		  let trNumAfter = $tr.closest('tr').prevAll().length; //순서 바꾼 후 index
+		  console.log("전:",trNumBefore,"후:",trNumAfter);
+    	  //순서가 바뀌었으니 id값 변경
+    	  //img태그 id값변경
+    	  $subTextArea_before=$('#subPhotoImg'+trNumBefore); //위 tr img
+		  $subTextArea_after=$('#subPhotoImg'+trNumAfter);   //아래 tr img
+		  $subTextArea_before.attr("id","subPhotoImg"+trNumAfter);  
+		  $subTextArea_after.attr("id","subPhotoImg"+trNumBefore); 
+    	  //textArea id값,name값 변경
+		  $subTextArea_before=$('#subPhotosExplain'+trNumBefore); //위 tr textArea
+		  $subTextArea_after=$('#subPhotosExplain'+trNumAfter);   //아래 tr textArea
+		  $subTextArea_before.attr("id","subPhotosExplain"+trNumAfter);  //ID 변경
+    	  $subTextArea_after.attr("id","subPhotosExplain"+trNumBefore);
+    	  $subTextArea_before.attr("name","subPhotosExplain"+trNumAfter);  //NAME변경
+    	  $subTextArea_after.attr("name","subPhotosExplain"+trNumBefore);
+    	  //실제 파일 순서도 변경해줘야한다.
+    	  arrayOrderChanger(sel_files,trNumBefore,trNumAfter);
+    	  console.log(sel_files);
+      }
+   	  //맨아래로 이동
+      function moveBottom(object){
+    	  let parentNode = object.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode; 
+    	  let original_index=parentNode.rowIndex; //버튼을 누른 행의 인덱스 (1부터 시작한다.)
+    	  console.log(original_index);
+      }
+      
+      
+      
       //Param (분기하기위한 문자열, img객체)
       function clickEventAction(st,e){
         console.log("clickEventAction");
@@ -219,10 +328,7 @@
        		lastRowCount++;
        		tableRowAdd();
        	}
-    	//var index = parseInt(e.id.substr(e.id.length - 1)); //id값의 끝문자를 가져오면 몇번째 행인지 알수있는 인덱스가 된다. (여기서는 넘어온 객체의 id값이므로 아래 주석처리된 코드를 안써도된다.)
-        //var index = $(e).parent().parent().closest('tr').prevAll().length; //index값을 가져온다.
-        //Array.prototype.push.apply(sel_files, e.files);
-       	
+    
         for(var i=0; i<addRow; i++){
         	sel_files.splice(index, addRow, e.files[i]); //배열에 index의 파일을 먼저 지우고(있으면) 배열에 삽입
         	let subimg = document.getElementById('subPhotoImg'+index); //해당 인덱스(행)에 해당하는 이미지 태그를 가져온다.
@@ -246,6 +352,30 @@
         var subPhotoUpload="onclick="+"clickEventAction('subPhotoUpload',this);"; //서브이미지 클릭했을 때 onclick 이벤트.
         var html='';
         html+='<tr style="height:180px;">';
+        html+=' <td>';
+        html+='		<table id="arrowTable">';
+        html+='    		<tr>';
+        html+='    			<td>';
+        html+='    				<button onclick="moveTop(this)";><img src="./Resource/images/top_arrow.png" /></button>';
+        html+='    			</td>';
+        html+='    		</tr>';
+        html+='    		<tr>';
+        html+='    			<td>';
+        html+='    				<button onclick="moveUp(this)";><img src="./Resource/images/up_arrow.png" /></button>';
+        html+='    			</td>';
+        html+='    		</tr>';
+        html+='    		<tr>';
+        html+='    			<td>';
+        html+='    				<button onclick="moveDown(this)";><img src="./Resource/images/down_arrow.png" /></button>';
+        html+='    			</td>';
+       	html+='    		</tr>';
+        html+='    		<tr>';
+        html+='    			<td>';
+        html+='    				<button onclick="moveBottom(this)";><img src="./Resource/images/bottom_arrow.png" /></button>';
+        html+='    			</td>';
+        html+='    		</tr>';
+        html+='		</table>';
+        html+='	</td>';
         html+='  <td valign="top">';
         html+='    <img style="margin:0 auto;" id="subPhotoImg'+subPhotosCounter+'" '+subPhotoUpload+' src="./Resource/images/photoplus.png"/>';
         html+='    <div style="text-align:center; margin-top:10px;">';
@@ -262,7 +392,7 @@
         html+='  </td>';
         html+='</tr>';
         $('#subPhotosTable > tbody:last').append(html); //하단에 추가.
-        tableDragAndDrop('subPhotosTable'); //테이블 드래그앤드랍해서 순서바꿀수있도록 적용
+        //tableDragAndDrop('subPhotosTable'); //테이블 드래그앤드랍해서 순서바꿀수있도록 적용
       }
 
       //zoom버튼(돋보기)누르면 원본이미지  뜨게 하는 함수 (모달로 바꿔보기..)
@@ -287,7 +417,7 @@
         var remove_index=e.parentNode.parentNode.rowIndex; //'x'버튼을 누른 행의 인덱스 (1부터 시작한다.)
         $(e).parent().parent().remove(); //e.parent == td, td.parent == tr이겠지?
 
-        //Row가 지워졌으니 그 아래의 값들은 인덱스(id)가 바뀌어야함(id값) - img (img속성에는 name을 주지않았음.. 그래도 id만 바꾸면 됨.)
+        //Row가 지워졌으니 그 아래의 값들은 인덱스(id)가 바뀌어야함(id값) - img (img속성에는 name을 주지않았음.. 그래서 id만 바꾸면 됨.)
         //현재는 전체를 다 바꾸는데 후에는 제거한 row의 아래값들만 바꾸게 변경
         $("#subPhotosTable tr td > img").each(function(i,item){//첫번째부터 차례대로 td의 img src속성값을 가져온다.
           var index = $(this).parent().parent().closest('tr').prevAll().length; //index값을 가져온다.
@@ -482,7 +612,8 @@
       });
 
 	  //Drag & Drop Event Listener
-	  function tableDragAndDrop(tableID){
+	  /* function tableDragAndDrop(tableID){
+		  document.addEventListener('touchmove', this._preventDefault, { passive: false });
 		  var el = document.getElementById(tableID);
 		  var dragger = tableDragger(el, {
 		    mode: 'row',
@@ -491,13 +622,24 @@
 		  });
 		  dragger.on('drop',function(from, to){
 		    console.log(from,to);
-		    var movedRow = document.getElementById('subPhotoImg'+index).parent;
-		    console.log(movedRow);
+		    from = from-1;
+		    var movedImg = document.getElementById('subPhotoImg'+from);
+		    console.log(movedImg);
 		  });
 	  }
+	  document.addEventListener('touchmove', this._preventDefault, { passive: false }); */
 	  
-	  
-	  
+	  /*배열순서 변경
+	  	@param arr : 변경될 배열
+	  	@param from : 요소의 현재 위치
+	  	@param to : 요소의 변경될 위치
+	  */
+	  function arrayOrderChanger(arr,from,to){
+		  let elem1 = arr[from];
+		  let elem2 = arr[to];
+		  arr[from] = elem2;
+		  arr[to] = elem1;
+	  }
 		 
     </script>
 
