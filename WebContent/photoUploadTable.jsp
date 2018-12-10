@@ -144,22 +144,22 @@
     		    <tr style="height:180px;">
     		    	<td>
     		    		<table id="arrowTable">
-	    		    		<tr>
+	    		    		<tr class="arrowRow">
 	    		    			<td>
 	    		    				<button onclick="moveTop(this);"><img src="./Resource/images/top_arrow.png" /></button>
 	    		    			</td>
 	    		    		</tr>
-	    		    		<tr>
+	    		    		<tr class="arrowRow">
 	    		    			<td>
 	    		    				<button onclick="moveUp(this);"><img src="./Resource/images/up_arrow.png" /></button>
 	    		    			</td>
 	    		    		</tr>
-	    		    		<tr>
+	    		    		<tr class="arrowRow">
 	    		    			<td>
 	    		    				<button onclick="moveDown(this);"><img src="./Resource/images/down_arrow.png" /></button>
 	    		    			</td>
 	    		    		</tr>
-	    		    		<tr>
+	    		    		<tr class="arrowRow">
 	    		    			<td>
 	    		    				<button onclick="moveBottom(this);"><img src="./Resource/images/bottom_arrow.png" /></button>
 	    		    			</td>
@@ -211,9 +211,25 @@
 		
       //맨위로 이동
       function moveTop(object){
-    	  let $tr = $(object).closet('tr').closet('tr'); 
-    	  let original_index=parentNode.rowIndex; //버튼을 누른 행의 인덱스 (1부터 시작한다.)
-    	  console.log(original_index);
+    	  let $tr = $(object).parent().parent().parent().parent().parent().parent(); // 클릭한 버튼이 속한 tr 요소
+    	  let trNumBefore = $tr.closest('tr').prevAll().length; //순서 바꾸기 전 index
+    	  let $tbody = $tr.parent(); //클릭한 요소의 tbody (subPhotosTable)
+    	  $tbody.find('tr:first').before($tr);//첫번째 tr 찾아서 그 앞에 클릭한 tr 요소 넣기
+    	  
+    	  //img 태그 index 재정렬
+          $("#subPhotosTable tr td > img").each(function(i,item){//첫번째부터 차례대로 td의 img src속성값을 가져온다.
+            var index = $(this).parent().parent().closest('tr').prevAll().length; //index값을 가져온다.
+            $(this).attr('id','subPhotoImg'+index);
+          });
+
+    	  //textArea 태그 index 재정렬
+          $("#subPhotosTable tr td  label > textarea").each(function(i,item){//첫번째부터 차례대로 td안의 laben에 textarea를 가져온다.
+            var index = $(this).parent().parent().closest('tr').prevAll().length; //index값을 가져온다.
+            $(this).attr('id','subPhotosExplain'+index);
+            $(this).attr('name','subPhotosExplain'+index);
+          });
+          arrayFirstElemChanger(sel_files,trNumBefore);
+          
       }
    	  //위로 이동
       function moveUp(object){
@@ -269,9 +285,24 @@
       }
    	  //맨아래로 이동
       function moveBottom(object){
-    	  let parentNode = object.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode; 
-    	  let original_index=parentNode.rowIndex; //버튼을 누른 행의 인덱스 (1부터 시작한다.)
-    	  console.log(original_index);
+    	  let $tr = $(object).parent().parent().parent().parent().parent().parent(); // 클릭한 버튼이 속한 tr 요소
+    	  let trNumBefore = $tr.closest('tr').prevAll().length; //순서 바꾸기 전 index
+    	  $tr.remove(); //tr삭제
+    	  $('#subPhotosTable > tbody:last').append($tr); //하단에 추가.
+    	  
+    	  //img 태그 index 재정렬
+          $("#subPhotosTable tr td > img").each(function(i,item){//첫번째부터 차례대로 td의 img src속성값을 가져온다.
+            var index = $(this).parent().parent().closest('tr').prevAll().length; //index값을 가져온다.
+            $(this).attr('id','subPhotoImg'+index);
+          });
+
+    	  //textArea 태그 index 재정렬
+          $("#subPhotosTable tr td  label > textarea").each(function(i,item){//첫번째부터 차례대로 td안의 laben에 textarea를 가져온다.
+            var index = $(this).parent().parent().closest('tr').prevAll().length; //index값을 가져온다.
+            $(this).attr('id','subPhotosExplain'+index);
+            $(this).attr('name','subPhotosExplain'+index);
+          });
+          arrayLastElemChanger(sel_files,trNumBefore);
       }
       
       
@@ -354,22 +385,22 @@
         html+='<tr style="height:180px;">';
         html+=' <td>';
         html+='		<table id="arrowTable">';
-        html+='    		<tr>';
+        html+='    		<tr class="arrowRow">';
         html+='    			<td>';
         html+='    				<button onclick="moveTop(this)";><img src="./Resource/images/top_arrow.png" /></button>';
         html+='    			</td>';
         html+='    		</tr>';
-        html+='    		<tr>';
+        html+='    		<tr class="arrowRow">';
         html+='    			<td>';
         html+='    				<button onclick="moveUp(this)";><img src="./Resource/images/up_arrow.png" /></button>';
         html+='    			</td>';
         html+='    		</tr>';
-        html+='    		<tr>';
+        html+='    		<tr class="arrowRow">';
         html+='    			<td>';
         html+='    				<button onclick="moveDown(this)";><img src="./Resource/images/down_arrow.png" /></button>';
         html+='    			</td>';
        	html+='    		</tr>';
-        html+='    		<tr>';
+        html+='    		<tr class="arrowRow">';
         html+='    			<td>';
         html+='    				<button onclick="moveBottom(this)";><img src="./Resource/images/bottom_arrow.png" /></button>';
         html+='    			</td>';
@@ -640,7 +671,27 @@
 		  arr[from] = elem2;
 		  arr[to] = elem1;
 	  }
-		 
+	  
+	  /*
+	  	배열 맨앞에으로 순서 변경
+	  	@param arr : 변경될 배열
+	  	@param from : 요소의 현재 위치
+	  */
+	  function arrayFirstElemChanger(arr,from){
+		  let elem = arr[from]; //맨 처음에 넣어질 요소
+		  arr.splice(from,1); //제거
+		  arr.unshift(elem); //배열 맨앞에 추가
+	  }
+	  
+	  /*배열 맨뒤로 순서 변경
+	  	@param arr : 변경될 배열
+	  	@param from : 요소의 현재 위치
+	  */
+	  function arrayLastElemChanger(arr,from){
+		  let elem = arr[from]; //맨 마지막에 넣어질 요소
+		  arr.splice(from,1); //제거
+		  arr.push(elem); //배열 뒤에 추가
+	  }
     </script>
 
 

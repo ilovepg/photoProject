@@ -20,7 +20,7 @@
   <context-param>
     <description>Server Type Setting</description>
     <param-name>ServerType</param-name>
-    <param-value>comp</param-value>
+    <param-value>dev</param-value>
   </context-param>
   <welcome-file-list>
     <welcome-file>index.html</welcome-file>
