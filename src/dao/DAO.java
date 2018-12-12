@@ -497,7 +497,7 @@ public class DAO {
 				+ "FROM photo_board_main main INNER JOIN photo_board_sub sub ON main.photo_boardNo=sub.photo_boardNo "
 				+ "INNER JOIN photo_board_thumb thumb ON sub.photo_subNo=thumb.photo_subNo "
 				+ "WHERE thumb.photo_boardNo=? AND thumb.photo_thumbUsage='photoView.pro' "
-				+ "ORDER BY thumb.photo_thumbNo DESC";
+				+ "ORDER BY sub.photo_ownNo ASC";
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
 		

@@ -32,6 +32,7 @@
          	height: 50%;
           	cursor:pointer;
         }
+        /* subPhotoTable에 순서 컬럼의 테두리 없애기 */
         #arrowTable{
         	border-right: hidden;
         	border-left: hidden;
@@ -383,7 +384,7 @@
         var subPhotoUpload="onclick="+"clickEventAction('subPhotoUpload',this);"; //서브이미지 클릭했을 때 onclick 이벤트.
         var html='';
         html+='<tr style="height:180px;">';
-        html+=' <td>';
+        html+='  <td>';
         html+='		<table id="arrowTable">';
         html+='    		<tr class="arrowRow">';
         html+='    			<td>';
@@ -406,7 +407,7 @@
         html+='    			</td>';
         html+='    		</tr>';
         html+='		</table>';
-        html+='	</td>';
+        html+='  </td>';
         html+='  <td valign="top">';
         html+='    <img style="margin:0 auto;" id="subPhotoImg'+subPhotosCounter+'" '+subPhotoUpload+' src="./Resource/images/photoplus.png"/>';
         html+='    <div style="text-align:center; margin-top:10px;">';

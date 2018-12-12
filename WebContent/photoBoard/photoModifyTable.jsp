@@ -34,6 +34,20 @@
           height: 50%;
           cursor:pointer;
         }
+        /* subPhotoTable에 순서 컬럼의 테두리 없애기 */
+        #arrowTable{
+        	border-right: hidden;
+        	border-left: hidden;
+        	border-top: hidden;
+        	border-bottom: hidden;
+        }
+        
+        #arrowTable td{
+        	border-right: hidden;
+        	border-left: hidden;
+        	border-top: hidden;
+        	border-bottom: hidden;
+        }
         .noColor{
           background-color: white;
         }
@@ -72,11 +86,8 @@
         font-size: 14px;
         letter-spacing: -.5px;
     }
-
     </style>
-    <script>
-      var subPhotosCounter=-1; //JavaScript로 테이블의 행을 동적생성할 때 id값의 인덱스로 쓰일 변수
-    </script>
+    
   </head>
   <body>
     <!-- 메인사진 상단 -->
@@ -124,6 +135,7 @@
         <table class="unstriped hover" id="subPhotosTable">
     		  <thead>
     		    <tr>
+    		      <th width="64px">순서</th>
     		      <th width="200px" class="text-center">사진</th>
     		      <th class="text-center">내용</th>
     		      <th width="150px" class="text-center"></th>
@@ -158,12 +170,13 @@
             </tr>
           </tfoot>
   	     </table>
-       <form>
+       </form>
     <script src="./Resource/assets/js/vendor/jquery.js"></script>
     <script src="./Resource/assets/js/vendor/what-input.js"></script>
     <script src="./Resource/assets/js/vendor/foundation.js"></script>
     <script src="./Resource/assets/js/app.js"></script>
     <script>
+    var subPhotosCounter=-1; //JavaScript로 테이블의 행을 동적생성할 때 id값의 인덱스로 쓰일 변수
     	/*서버 경로를 설정한다.*/
 	    var serverType="<%=serverType%>"; //web.xml에 설정된 서버타입을 가져온다.
 		var server_path; //이미지 경로
@@ -240,7 +253,8 @@
 		var mainPhoto=document.getElementById('mainPhotoImg'); //메인사진
 		mainPhoto.src = server_path+main; //메인사진 SET
 		
-		var subPhotoImgIndex=subs.length-1; //응답 JSON에서 서브사진들을 꺼내기 위한 인덱스
+		//var subPhotoImgIndex=subs.length-1; //응답 JSON에서 서브사진들을 꺼내기 위한 인덱스 (DESC로 정렬했을 때  DAO에서.)
+		var subPhotoImgIndex=0; //응답 JSON에서 서브사진들을 꺼내기 위한 인덱스
 		for(var index=0; index<subs.length-1; index++){
 			
 			var photoSubNo=subs[subPhotoImgIndex].photo_subNo;//서브사진 DB고유번호
@@ -249,7 +263,8 @@
 			if(boardNo>2){
 				if(subs[subPhotoImgIndex].photo_subNo==2){
 					index--;
-					subPhotoImgIndex--;
+					//subPhotoImgIndex--; //(DESC로 정렬했을 때  DAO에서.)
+					subPhotoImgIndex++;
 					continue;
 				}
 				if(subs.length-1 > index){
@@ -269,7 +284,8 @@
 			var subPhotoExplain=subs[subPhotoImgIndex].photo_content;//서브사진 내용
 			subPhoto.src = subImg; //서브사진 SET
 			subPhotosExplain.value=subPhotoExplain; //서브사진 내용 SET
-			subPhotoImgIndex--;
+			subPhotoImgIndex++;
+			//subPhotoImgIndex--; //(DESC로 정렬했을 때  DAO에서.)
 			
 			original_contents[photoSubNo]=subPhotoExplain; //원본 서브사진 내용을 넣는다.
 		} 
@@ -356,6 +372,30 @@
           var subPhotoUpload="onclick="+"clickEventAction('subPhotoUpload',this);"; //서브이미지 클릭했을 때 onclick 이벤트.
           var html='';
           html+='<tr style="height:180px;">';
+          html+=' <td>';
+          html+='		<table id="arrowTable">';
+          html+='    		<tr class="arrowRow">';
+          html+='    			<td>';
+          html+='    				<button onclick="moveTop(this)";><img src="./Resource/images/top_arrow.png" /></button>';
+          html+='    			</td>';
+          html+='    		</tr>';
+          html+='    		<tr class="arrowRow">';
+          html+='    			<td>';
+          html+='    				<button onclick="moveUp(this)";><img src="./Resource/images/up_arrow.png" /></button>';
+          html+='    			</td>';
+          html+='    		</tr>';
+          html+='    		<tr class="arrowRow">';
+          html+='    			<td>';
+          html+='    				<button onclick="moveDown(this)";><img src="./Resource/images/down_arrow.png" /></button>';
+          html+='    			</td>';
+          html+='    		</tr>';
+          html+='    		<tr class="arrowRow">';
+          html+='    			<td>';
+          html+='    				<button onclick="moveBottom(this)";><img src="./Resource/images/bottom_arrow.png" /></button>';
+          html+='    			</td>';
+          html+='    		</tr>';
+          html+='		</table>';
+          html+='  </td>';
           html+='  <td valign="top">';
           html+='    <img style="margin:0 auto;" id="subPhotoImg'+subPhotosCounter+'" '+subPhotoUpload+' src="./Resource/images/photoplus.png"/>';
           html+='    <input type="file" id="subPhotos'+subPhotosCounter+'" photoSubNo="'+photoSubNo+'" photoOwnNo="'+photoOwnNo+'" name="subPhotos'+subPhotosCounter+'" class="show-for-sr" onchange="previewSubPhoto(this);">';
