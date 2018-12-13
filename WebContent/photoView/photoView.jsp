@@ -64,7 +64,7 @@
 			/* 페이지의 로딩이 끝나면 상세페이지의 데이터를 가지고 오는 API 호출 */
 			window.onload=function(){
 				getPhotoViewData(<%=photoBoardNo%>)
-			}
+			};
 			
 			/* 상세페이지 초기 데이터 가지고 오는 API */
 			function getPhotoViewData(photoBoardNo){
@@ -81,7 +81,7 @@
 						  console.log(key +":"+ responseJSON[key]);
 					}  */
 						console.log("응답:"+responseJSON.PhotoBoardViewAPI_getPhotoDetailData_result);
-						jsonResponse=responseJSON.PhotoBoardViewAPI_getPhotoDetailData_result;
+						jsonResponse=responseJSON.PhotoBoardViewAPI_getPhotoDetailData_result; //수정버튼을 눌렀을 때 보내줄 용도
 						dataSet(responseJSON.PhotoBoardViewAPI_getPhotoDetailData_result); //응답된 데이터를 가지고 화면을 구성한다.
 					},
 		            //error : function error(){ alert('error');}
@@ -123,7 +123,8 @@
 					boardPhotoSet(photoBoard_thumb,photoBoard_sub,photoBoard_main);
 					
 				}else{
-					console.log("클릭한 게시글 고유번호와 응답된 게시글 고유번호가 같지않습니다.")
+					console.log("클릭한 게시글 고유번호와 응답된 게시글 고유번호가 같지않습니다.");
+					console.log("photo_boardNo:",photo_boardNo,"photo_boardNoFromJava:",photo_boardNoFromJava);
 				}
 			}
 			
@@ -170,7 +171,7 @@
 					여기에서 인덱스를 뒤에서부터 돌림.
 				*/
 				/* 사진들 썸네일 및 풀이미지 셋팅*/
-				for(var i=photoBoard_thumb.length-1; i>=0; i--){
+				for(var i=0; i<photoBoard_thumb.length; i++){
 					if(i==mainPhotoIndex){ //메인포토는 이미 위에서 적용했으므로 생략
 						continue; 
 					}
@@ -199,8 +200,37 @@
 					}
 				}
 				
-				$('#removeArticle').remove();
-				main.init();
+				/* for(var i=photoBoard_thumb.length-1; i>=0; i--){
+					if(i==mainPhotoIndex){ //메인포토는 이미 위에서 적용했으므로 생략
+						continue; 
+					}
+					var html = '';
+					var photo_thumNail = server_path+photoBoard_thumb[i].photo_thumbName; //썸네일
+					var photo_fullImg = server_path+photoBoard_sub[i].photo_sub; //서브 full Img
+					var photo_content = photoBoard_sub[i].photo_content; //서브사진 내용
+					
+					//main사진 썸네일 및 풀이미지 셋팅
+					if(photoBoard_thumb[i].photo_thumbType=="main"){ //메인사진의 썸네일을 찾는다.
+						photo_fullImg = server_path+photoBoard_main;
+						photo_content = '메인사진 찰칵~';
+					} 
+					
+					//사진들 썸네일 및 풀이미지 셋팅
+					html += '<article>';
+					html += '<a class="thumbnail" href='+photo_fullImg+'><img src='+photo_thumNail+' alt="" /></a>';
+					html += '<h2>'+photo_content+'</h2>';
+					html += '<p></p>';
+					html += '</article>';
+					
+					if(photoBoard_thumb[i].photo_thumbType=="main"){ //메인사진의 썸네일을 찾는다.
+						$('#thumbnails').prepend(html)
+					}else{
+						$('#thumbnails').append(html);	
+					}
+				} */
+				
+				$('#removeArticle').remove(); //썸네일 쪽에 나와있는 기본이미지 제거
+				main.init(); //썸네일 누르면 풀이미지 뜨게 init
 				
 			}
 			
