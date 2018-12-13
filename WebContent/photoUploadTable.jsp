@@ -306,8 +306,6 @@
           arrayLastElemChanger(sel_files,trNumBefore);
       }
       
-      
-      
       //Param (분기하기위한 문자열, img객체)
       function clickEventAction(st,e){
         console.log("clickEventAction");
@@ -519,16 +517,15 @@
             alert("이미지만 업로드 가능합니다.");
             return;
           }
-        })
+        });
         //mainPhotos 이미지만 업로드 가능하게 MIME 형식 검사
         mainPhotoArray.forEach(function(f){
           if(!f.type.match("image.*")) {
             alert("이미지만 업로드 가능합니다.");
             return;
           }
-        })
+        });
 		
-        
         //formData에 image append
         data.append("imageMain",mainPhotoArray[0]); //메인 이미지 data에 append
         

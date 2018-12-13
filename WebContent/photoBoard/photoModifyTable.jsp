@@ -92,8 +92,6 @@
   <body>
     <!-- 메인사진 상단 -->
     <h3 style="margin-top:50px; text-align:center;">메인사진</h3>
-
-    <form action="uploadDo" method="post" enctype="multipart/form-data" name="uploadForm">
       <div class="text-center" style="margin-bottom:20px;">
         <img id="mainPhotoImg" onclick="clickEventAction('mainPhotoUpload',this);" src="./Resource/images/photoplus.png"/>
         <input type="file" id="mainPhoto" name="mainPhoto" class="show-for-sr" onchange="previewMainPhoto(this);"/>
@@ -170,7 +168,7 @@
             </tr>
           </tfoot>
   	     </table>
-       </form>
+       
     <script src="./Resource/assets/js/vendor/jquery.js"></script>
     <script src="./Resource/assets/js/vendor/what-input.js"></script>
     <script src="./Resource/assets/js/vendor/foundation.js"></script>
@@ -719,6 +717,7 @@
 		return false; //안바뀌었다면 false
 	}
    	
+	//서브 사진 내용이 변경되었는지 확인하는 함수
 	function originalSubContentsValueChangeListener(subPhotoContent){
 		var photoSubNo = subPhotoContent.getAttribute('photoSubNo'); //방금 변경한 컨텐츠의 DB 고유번호
 		var compareValue = subPhotoContent.value; //방금 변경한 컨텐츠의 내용
@@ -757,6 +756,139 @@
   	  }
   	  return false;
     }
+  	
+  	
+  	
+   /*배열순서 변경
+  	@param arr : 변경될 배열
+  	@param from : 요소의 현재 위치
+  	@param to : 요소의 변경될 위치
+  */
+  function arrayOrderChanger(arr,from,to){
+	  let elem1 = arr[from];
+	  let elem2 = arr[to];
+	  arr[from] = elem2;
+	  arr[to] = elem1;
+  }
+  //맨위로 이동
+  function moveTop(object){
+	  let $tr = $(object).parent().parent().parent().parent().parent().parent(); // 클릭한 버튼이 속한 tr 요소
+	  let trNumBefore = $tr.closest('tr').prevAll().length; //순서 바꾸기 전 index
+	  let $tbody = $tr.parent(); //클릭한 요소의 tbody (subPhotosTable)
+	  $tbody.find('tr:first').before($tr);//첫번째 tr 찾아서 그 앞에 클릭한 tr 요소 넣기
+	  
+	  //img 태그 index 재정렬
+      $("#subPhotosTable tr td > img").each(function(i,item){//첫번째부터 차례대로 td의 img src속성값을 가져온다.
+        var index = $(this).parent().parent().closest('tr').prevAll().length; //index값을 가져온다.
+        $(this).attr('id','subPhotoImg'+index);
+      });
+
+	  //textArea 태그 index 재정렬
+      $("#subPhotosTable tr td  label > textarea").each(function(i,item){//첫번째부터 차례대로 td안의 laben에 textarea를 가져온다.
+        var index = $(this).parent().parent().closest('tr').prevAll().length; //index값을 가져온다.
+        $(this).attr('id','subPhotosExplain'+index);
+        $(this).attr('name','subPhotosExplain'+index);
+      });
+      arrayFirstElemChanger(sel_files,trNumBefore);
+      
+  }
+  //위로 이동
+  function moveUp(object){
+	  //let parentNode = object.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode; 
+	  //let original_index=parentNode.rowIndex; //버튼을 누른 행의 인덱스 (1부터 시작한다.)
+	  let $tr = $(object).parent().parent().parent().parent().parent().parent(); // 클릭한 버튼이 속한 tr 요소
+	  let trNumBefore = $tr.closest('tr').prevAll().length; //순서 바꾸기 전 index
+	  $tr.prev().before($tr); // 현재 tr 의 이전 tr 앞에 선택한 tr 넣기 (순서 바꾸기)
+	  let trNumAfter = $tr.closest('tr').prevAll().length; //순서 바꾼 후 index
+	  console.log("전:",trNumBefore,"후:",trNumAfter);
+	  //순서가 바뀌었으니 id값 변경
+	  //img태그 id값변경
+	  $subTextArea_before=$('#subPhotoImg'+trNumBefore); //위 tr img
+	  $subTextArea_after=$('#subPhotoImg'+trNumAfter);   //아래 tr img
+	  $subTextArea_before.attr("id","subPhotoImg"+trNumAfter);  
+	  $subTextArea_after.attr("id","subPhotoImg"+trNumBefore); 
+	  //textArea id값,name값 변경
+	  $subTextArea_before=$('#subPhotosExplain'+trNumBefore); //위 tr textArea
+	  $subTextArea_after=$('#subPhotosExplain'+trNumAfter);   //아래 tr textArea
+	  $subTextArea_before.attr("id","subPhotosExplain"+trNumAfter);  //ID 변경
+	  $subTextArea_after.attr("id","subPhotosExplain"+trNumBefore);
+	  $subTextArea_before.attr("name","subPhotosExplain"+trNumAfter);  //NAME변경
+	  $subTextArea_after.attr("name","subPhotosExplain"+trNumBefore);
+	  //실제 파일 순서도 변경해줘야한다.
+	  arrayOrderChanger(sel_files,trNumBefore,trNumAfter);
+	  console.log(sel_files);
+  }
+  //아래로 이동
+  function moveDown(object){
+	  //let parentNode = object.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode; 
+	  //let original_index=parentNode.rowIndex; //버튼을 누른 행의 인덱스 (1부터 시작한다.)
+	  let $tr = $(object).parent().parent().parent().parent().parent().parent(); // 클릭한 버튼이 속한 tr 요소
+	  let trNumBefore = $tr.closest('tr').prevAll().length; //순서 바꾸기 전 index
+	  $tr.next().after($tr); // 현재 tr 의 다음 tr 뒤에 선택한 tr 넣기 (순서 바꾸기)
+	  let trNumAfter = $tr.closest('tr').prevAll().length; //순서 바꾼 후 index
+	  console.log("전:",trNumBefore,"후:",trNumAfter);
+	  //순서가 바뀌었으니 id값 변경
+	  //img태그 id값변경
+	  $subTextArea_before=$('#subPhotoImg'+trNumBefore); //위 tr img
+	  $subTextArea_after=$('#subPhotoImg'+trNumAfter);   //아래 tr img
+	  $subTextArea_before.attr("id","subPhotoImg"+trNumAfter);  
+	  $subTextArea_after.attr("id","subPhotoImg"+trNumBefore); 
+	  //textArea id값,name값 변경
+	  $subTextArea_before=$('#subPhotosExplain'+trNumBefore); //위 tr textArea
+	  $subTextArea_after=$('#subPhotosExplain'+trNumAfter);   //아래 tr textArea
+	  $subTextArea_before.attr("id","subPhotosExplain"+trNumAfter);  //ID 변경
+	  $subTextArea_after.attr("id","subPhotosExplain"+trNumBefore);
+	  $subTextArea_before.attr("name","subPhotosExplain"+trNumAfter);  //NAME변경
+	  $subTextArea_after.attr("name","subPhotosExplain"+trNumBefore);
+	  //실제 파일 순서도 변경해줘야한다.
+	  arrayOrderChanger(sel_files,trNumBefore,trNumAfter);
+	  console.log(sel_files);
+  }
+  //맨아래로 이동
+  function moveBottom(object){
+	  let $tr = $(object).parent().parent().parent().parent().parent().parent(); // 클릭한 버튼이 속한 tr 요소
+	  let trNumBefore = $tr.closest('tr').prevAll().length; //순서 바꾸기 전 index
+	  $tr.remove(); //tr삭제
+	  $('#subPhotosTable > tbody:last').append($tr); //하단에 추가.
+	  
+	  //img 태그 index 재정렬
+      $("#subPhotosTable tr td > img").each(function(i,item){//첫번째부터 차례대로 td의 img src속성값을 가져온다.
+        var index = $(this).parent().parent().closest('tr').prevAll().length; //index값을 가져온다.
+        $(this).attr('id','subPhotoImg'+index);
+      });
+
+	  //textArea 태그 index 재정렬
+      $("#subPhotosTable tr td  label > textarea").each(function(i,item){//첫번째부터 차례대로 td안의 laben에 textarea를 가져온다.
+        var index = $(this).parent().parent().closest('tr').prevAll().length; //index값을 가져온다.
+        $(this).attr('id','subPhotosExplain'+index);
+        $(this).attr('name','subPhotosExplain'+index);
+      });
+      arrayLastElemChanger(sel_files,trNumBefore);
+  }
+    
+    
+    
+  /*
+  	배열 맨앞에으로 순서 변경
+  	@param arr : 변경될 배열
+  	@param from : 요소의 현재 위치
+  */
+  function arrayFirstElemChanger(arr,from){
+	  let elem = arr[from]; //맨 처음에 넣어질 요소
+	  arr.splice(from,1); //제거
+	  arr.unshift(elem); //배열 맨앞에 추가
+  }
+  
+  /*배열 맨뒤로 순서 변경
+  	@param arr : 변경될 배열
+  	@param from : 요소의 현재 위치
+  */
+  function arrayLastElemChanger(arr,from){
+	  let elem = arr[from]; //맨 마지막에 넣어질 요소
+	  arr.splice(from,1); //제거
+	  arr.push(elem); //배열 뒤에 추가
+  }
+  	
     </script>
 
 
