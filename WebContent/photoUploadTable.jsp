@@ -193,7 +193,6 @@
             </tr>
           </tfoot>
   	     </table>
-       
     <input type="file" id="subPhotos0" name="subPhotos0" class="show-for-sr" value="add.png" onchange="previewSubPhoto(this);" multiple/>
     <script src="./Resource/assets/js/vendor/jquery.js"></script>
     <script src="./Resource/assets/js/vendor/what-input.js"></script>
@@ -360,7 +359,7 @@
        	}
     
         for(var i=0; i<addRow; i++){
-        	sel_files.splice(index, addRow, e.files[i]); //배열에 index의 파일을 먼저 지우고(있으면) 배열에 삽입
+        	sel_files.splice(index, 1, e.files[i]); //배열에 index의 파일을 먼저 지우고(있으면) 배열에 삽입
         	let subimg = document.getElementById('subPhotoImg'+index); //해당 인덱스(행)에 해당하는 이미지 태그를 가져온다.
         	//console.log(subimg);
         	//console.log(e.files[i]);
@@ -535,11 +534,10 @@
            
             data.append(file_name, sel_files[i]);
 			data.append(content_name,contentArray[i]);
-			
         }
         data.append("subject",subject); //제목을 넣어준다.
 		data.append("length",sel_files.length-1); //몇개의 이미지가 있는지 넣어준다. (사진의 내용을 사용할 때도 같이 사용될것이다.)
-        data.append("a_line_review",a_line_review);
+        data.append("a_line_review",a_line_review); //한줄평을 넣어준다.
 		
 		//태그 데이터를 가져온다.
 		var temp_tags = marginTag();

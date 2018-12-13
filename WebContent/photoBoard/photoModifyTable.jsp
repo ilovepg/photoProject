@@ -168,13 +168,14 @@
             </tr>
           </tfoot>
   	     </table>
-       
+    <input type="file" id="subPhotos0" name="subPhotos0" class="show-for-sr" value="add.png" onchange="previewSubPhoto(this);" multiple/>   
     <script src="./Resource/assets/js/vendor/jquery.js"></script>
     <script src="./Resource/assets/js/vendor/what-input.js"></script>
     <script src="./Resource/assets/js/vendor/foundation.js"></script>
     <script src="./Resource/assets/js/app.js"></script>
     <script>
     var subPhotosCounter=-1; //JavaScript로 테이블의 행을 동적생성할 때 id값의 인덱스로 쓰일 변수
+    var clickedImgIndex = 0; //내가 클릭한 이미지 인덱스
     	/*서버 경로를 설정한다.*/
 	    var serverType="<%=serverType%>"; //web.xml에 설정된 서버타입을 가져온다.
 		var server_path; //이미지 경로
@@ -198,6 +199,7 @@
 		var updateList = {}; //사용자가 수정한 서브사진 리스트 (객체로 만든 이유는 subPhotoNo를 key, File을 name으로 하기위해서)
 		var updateContentList = {}; //사용자가 수정한 서브사진 내용 (객체로 만든 이유는 subPhotoNo를 key, File을 name으로 하기위해서)
 		var delList = []; //사용자가 지운 서브사진 리스트
+		var rowOrder = {}; //추가된 것이 아니라 기존에 있던 서브포토 순서
 		
 		//페이지 로딩이 완료된 후 실행되어 수정 데이터들을 SET 시킨다.
 		window.onload = function (){
@@ -267,6 +269,7 @@
 				}
 				if(subs.length-1 > index){
 					tableRowAdd(photoSubNo,photoOwnNo); //서브사진 테이블 추가
+					rowOrder[photoOwnNo]=photoOwnNo; //추가된 것이 아니라 기존에 있던 서브포토 순서를 넣어준다.
 				}
 				photoSubNo=subs[subPhotoImgIndex].photo_subNo;//서브사진 DB고유번호
 				photoOwnNo=subs[subPhotoImgIndex].photo_ownNo;//서브사진 테이블내 순서
@@ -293,7 +296,6 @@
       function clickEventAction(st,e){
         console.log("clickEventAction");
         var index = $(e).parent().parent().closest('tr').prevAll().length; //index값을 가져온다.
-        console.log("index값:"+index);
         switch (st) {
           case "mainPhotoUpload":
             $("#mainPhoto").trigger('click');
@@ -311,8 +313,10 @@
                 }
               });
             }
-
-            $("#subPhotos"+index).trigger('click');
+            console.log("index값:"+index);
+            clickedImgIndex=index; //전역변수에 클릭한 인덱스를 보내준다.
+            //$("#subPhotos"+index).trigger('click');
+            $("#subPhotos0").trigger('click');
             break;
         }
       }
@@ -332,31 +336,36 @@
       
       // 서브이미지 선택시 미리보기 (수정시에 활용될듯)
       function previewSubPhoto(e){
-    	var photoSubNo=e.getAttribute("photoSubNo"); //해당 사진의 DB 고유값 (새로 추가된 사진이 아니라면 이 값이 있을 것이다.)
-    	var index = parseInt(e.id.substr(e.id.length - 1)); //id값의 끝문자를 가져오면 몇번째 행인지 알수있는 인덱스가 된다. (여기서는 넘어온 객체의 id값이므로 아래 주석처리된 코드를 안써도된다.)
-        //var index = $(e).parent().parent().closest('tr').prevAll().length; //index값을 가져온다.
-        var subimg = document.getElementById('subPhotoImg'+index); //해당 인덱스(행)에 해당하는 이미지 태그를 가져온다.
-        //선택한 이미지를 FileReader로 읽어서 이미지의 src속성에 넣어주는 부분.
-        var file = e.files[0],
-            reader = new FileReader();
-        reader.onload = function (event) {
-              subimg.src = event.target.result;
-        }
-        reader.readAsDataURL(file);
-        console.log("file1:"+file);
-        if(photoSubNo=='undefined'){ //photoSubNo가 undefined라는 것은 새로 추가된 사진이란 것임.
-        	console.log("file2:"+file);
-        	sel_files.splice(index, 1, file); //배열에 index의 파일을 먼저 지우고(있으면) 배열에 삽입
-        	console.log("sel_files:"+sel_files[0]);
-        }else{
-        	console.log("file3:"+file);
-        	/* var tempArray=[];
-        	tempArray.push(file);
-        	console.log("tempArray:"+tempArray); */
-    		//updateList[photoSubNo]=tempArray;//업데이트 리스트에 추가한다.
-    		updateList[photoSubNo]=file;//업데이트 리스트에 추가한다.
-    		console.log("updateList:"+updateList[photoSubNo]);
-    	}
+    	  var originalRowSize = Object.size(rowOrder); //기존에 있던 서브사진 로우 수 (정확한 sel_files의 인덱스를 알기위해서는 x버튼이 클릭된 행의 인덱스에서 이것을 빼줘야한다.)
+    	  var index = clickedImgIndex; //클릭한 행
+          var lastRowCount = subPhotosCounter+1; //현재 마지막행
+          var addRow = e.files.length; //추가할 사진들 개수
+         	var toBeAddRowCount = addRow+index; //더해져야할 행
+         	while(toBeAddRowCount>lastRowCount){ //현재 행수가 부족하면 그만큼 더해준다. 
+         		lastRowCount++;
+         		tableRowAdd();
+         	}
+      
+          for(var i=0; i<addRow; i++){
+        	//sel_files에서 해당 로우의 데이터를 삭제해야 submit했을 때 삭제된 데이터가 들어가지 않는다. (새로 추가한 행을 삭제했을 때만)
+            if(originalRowSize<=index){ //선택한 행이 기존에 있던 행보다 크다면 새로 추가한 행이라고 판단!
+            	sel_files.splice(index-originalRowSize, 1, e.files[i]); //배열에 index의 파일을 먼저 지우고(있으면) 배열에 삽입인덱스에서 이것을 빼줘야한다.)
+            }else{
+            	sel_files.splice(index, 1, e.files[i]); //배열에 index의 파일을 먼저 지우고(있으면) 배열에 삽입	
+            } 
+          	let subimg = document.getElementById('subPhotoImg'+index); //해당 인덱스(행)에 해당하는 이미지 태그를 가져온다.
+          	//console.log(subimg);
+          	//console.log(e.files[i]);
+          	//선택한 이미지를 FileReader로 읽어서 이미지의 src속성에 넣어주는 부분.
+              let file = e.files[i];
+              let reader = new FileReader();
+              reader.onload = function (event) {
+                    subimg.src = event.target.result;
+              }
+              reader.readAsDataURL(file);
+          	index++;
+          }
+          console.log(sel_files);
       }
 	  
       
@@ -396,7 +405,7 @@
           html+='  </td>';
           html+='  <td valign="top">';
           html+='    <img style="margin:0 auto;" id="subPhotoImg'+subPhotosCounter+'" '+subPhotoUpload+' src="./Resource/images/photoplus.png"/>';
-          html+='    <input type="file" id="subPhotos'+subPhotosCounter+'" photoSubNo="'+photoSubNo+'" photoOwnNo="'+photoOwnNo+'" name="subPhotos'+subPhotosCounter+'" class="show-for-sr" onchange="previewSubPhoto(this);">';
+          //html+='    <input type="file" id="subPhotos'+subPhotosCounter+'" photoSubNo="'+photoSubNo+'" photoOwnNo="'+photoOwnNo+'" name="subPhotos'+subPhotosCounter+'" class="show-for-sr" onchange="previewSubPhoto(this);">';
           html+='    <div style="text-align:center; margin-top:10px;">';
           html+='      <img src="./Resource/images//photozoom.png" onclick="imagesZoom(this);">';
           html+='    </div>';
@@ -411,6 +420,7 @@
           html+='  </td>';
           html+='</tr>';
           $('#subPhotosTable > tbody:last').append(html); //하단에 추가.
+          //console.log(rowOrder);
       }
       //zoom버튼(돋보기)누르면 원본이미지  뜨게 하는 함수 (모달로 바꿔보기..)
       //e=img객체
@@ -431,17 +441,21 @@
       //'x'버튼을 누르면 해당 row를 삭제하는 함수
       //e=버튼 객체
       function removeTableSpecifiedRow(e){
+    	var originalRowSize = Object.size(rowOrder); //기존에 있던 서브사진 로우 수 (정확한 sel_files의 인덱스를 알기위해서는 x버튼이 클릭된 행의 인덱스에서 이것을 빼줘야한다.)
         var remove_index=e.parentNode.parentNode.rowIndex; //'x'버튼을 누른 행의 인덱스 (1부터 시작한다.)
-        var del_photosubno=$('#subPhotos'+(remove_index-1)).attr('photosubno');
-       	if(del_photosubno != 'undefined'){// (인덱스가 1부터 시작하므로 -1을 해준다.)
+        var del_photosubno=$('#subPhotosExplain'+(remove_index-1)).attr('photosubno');
+       	if(del_photosubno !== undefined){ // (인덱스가 1부터 시작하므로 -1을 해준다.)
        		//수정페이지에서 새로 추가한 사진을 지우는 것이 아니라 원래 있던 사진을 지우는 것이라면 delList에 추가해서 서버로 보낸다.
        		delList.push(del_photosubno);
        		var result=isContainUpdateList(del_photosubno);
-       		if(result==true){ //updateList에 값이 있었다면 updateList에서 빼준다.
+       		if(result==true){ //updateList에 값이 있었다면 updateList에서 빼준다. 어차피 삭제한거니까.
        			delete updateList[del_photosubno];
-       			
        		}
-       	} 
+       		
+       		//기존 Row 수 또한 1개 줄어야한다. (rowOrder로 로우수를 체크하기 때문에. 이 함수도 그렇고, previewSubPhoto함수도..)
+       		var del_photoOwnNo=$('#subPhotosExplain'+(remove_index-1)).attr('photoownno'); //rowOrder에서 지워야하기 때문에
+       		delete rowOrder[del_photoOwnNo]; 
+       	}
        	
         $(e).parent().parent().remove(); //e.parent == td, td.parent == tr이겠지?
 		
@@ -468,9 +482,11 @@
           $(this).attr('name','subPhotosExplain'+index);
         });
 
-        //sel_files에서 해당 로우의 데이터를 삭제해야 submit했을 때 삭제된 데이터가 들어가지 않는다.
-        sel_files.splice(remove_index-1,1);
-        //동적 생성할 때 index값으로 쓰이는 변수 또한 -1 시켜줘야한다.
+        //sel_files에서 해당 로우의 데이터를 삭제해야 submit했을 때 삭제된 데이터가 들어가지 않는다. (새로 추가한 행을 삭제했을 때만)
+        if(originalRowSize<remove_index){ //선택한 행이 기존에 있던 행보다 크다면 새로 추가한 행을 삭제한 것으로 판단.
+	        sel_files.splice(remove_index-originalRowSize-1,1); //(정확한 sel_files의 인덱스를 알기위해서는 x버튼이 클릭된 행의 인덱스에서 이것을 빼줘야한다.)
+        }
+      	//동적 생성할 때 index값으로 쓰이는 변수 또한 -1 시켜줘야한다.
         subPhotosCounter--;
       }
       
