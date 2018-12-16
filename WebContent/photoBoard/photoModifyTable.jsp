@@ -597,7 +597,6 @@
 			for(let key in updateList){
 				data.append("updateSubPhoto"+key,updateList[key]);	
 			}
-			
 		}
 		
 		if(updateContentListSize>0){
@@ -830,9 +829,25 @@
 	  $subTextArea_after.attr("id","subPhotosExplain"+trNumBefore);
 	  $subTextArea_before.attr("name","subPhotosExplain"+trNumAfter);  //NAME변경
 	  $subTextArea_after.attr("name","subPhotosExplain"+trNumBefore);
-	  //실제 파일 순서도 변경해줘야한다.
-	  arrayOrderChanger(sel_files,trNumBefore,trNumAfter);
-	  console.log(sel_files);
+	  
+	  //새로 추가된 row인지 아닌지 판별
+	  var photoownno_before = $subTextArea_before.attr('photoownno'); //방금 변경한 Row의 컨텐츠 DB 고유번호 (전)
+	  var photoownno_after = $subTextArea_after.attr('photoownno'); //방금 변경한 Row의 컨텐츠 DB 고유번호 (후)
+	  if(photoownno_before=='undefined'){ //새로 추가한 로우에 대해서만 작동하게 하기 (기존에 있던 로우는 sel_files에 없다.)
+		  //실제 파일 순서도 변경해줘야한다.
+		  arrayOrderChanger(sel_files,trNumBefore,trNumAfter);
+		  console.log(sel_files);
+	  }else{ //기존에 있던 로우는 rowOrder에서 순서를 변경해준다.
+		  //클릭 요소의 순서변경
+		  rowOrder[photoownno_before]=trNumAfter;
+	  	  //위에 있던 요소의 순서변경
+	  	  if(photoownno_after!='undefined'){
+	  		rowOrder[photoownno_after]=trNumBefore;
+	  	  }
+	  	  
+		  console.log(rowOrder); 
+	  }
+	  
   }
   //아래로 이동
   function moveDown(object){
