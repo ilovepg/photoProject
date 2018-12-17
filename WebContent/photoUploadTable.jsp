@@ -624,8 +624,7 @@
    			  }else{
    				  alert("태그 값이 이미 있습니다.");
    			  }
-   			  	
-   			  }
+   			 }
    			  e.preventDefault(); //SpaceBar 할 때 빈 공간이 생기지 않도록 방지
    		  }
    	  });

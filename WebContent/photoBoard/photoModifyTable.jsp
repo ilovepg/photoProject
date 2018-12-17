@@ -199,7 +199,8 @@
 		var updateList = {}; //사용자가 수정한 서브사진 리스트 (객체로 만든 이유는 subPhotoNo를 key, File을 name으로 하기위해서)
 		var updateContentList = {}; //사용자가 수정한 서브사진 내용 (객체로 만든 이유는 subPhotoNo를 key, File을 name으로 하기위해서)
 		var delList = []; //사용자가 지운 서브사진 리스트
-		var rowOrder = {}; //추가된 것이 아니라 기존에 있던 서브포토 순서
+		var originalRow = {}; //추가된 것이 아니라 기존에 있던 로우
+		var rowOrderChange = {}; //순서가 변경된 행을 photoOwnNo를 키값으로 해서 순서가 변경될 때마다 삽입
 		
 		//페이지 로딩이 완료된 후 실행되어 수정 데이터들을 SET 시킨다.
 		window.onload = function (){
@@ -269,7 +270,7 @@
 				}
 				if(subs.length-1 > index){
 					tableRowAdd(photoSubNo,photoOwnNo); //서브사진 테이블 추가
-					rowOrder[photoOwnNo]=photoOwnNo; //추가된 것이 아니라 기존에 있던 서브포토 순서를 넣어준다.
+					originalRow[photoOwnNo]=photoOwnNo; //추가된 것이 아니라 기존에 있던 서브포토 순서를 넣어준다.
 				}
 				photoSubNo=subs[subPhotoImgIndex].photo_subNo;//서브사진 DB고유번호
 				photoOwnNo=subs[subPhotoImgIndex].photo_ownNo;//서브사진 테이블내 순서
@@ -336,7 +337,7 @@
       
       // 서브이미지 선택시 미리보기 (수정시에 활용될듯)
       function previewSubPhoto(e){
-    	  var originalRowSize = Object.size(rowOrder); //기존에 있던 서브사진 로우 수 (정확한 sel_files의 인덱스를 알기위해서는 x버튼이 클릭된 행의 인덱스에서 이것을 빼줘야한다.)
+    	  var originalRowSize = Object.size(originalRow); //기존에 있던 서브사진 로우 수 (정확한 sel_files의 인덱스를 알기위해서는 x버튼이 클릭된 행의 인덱스에서 이것을 빼줘야한다.)
     	  var index = clickedImgIndex; //클릭한 행
           var lastRowCount = subPhotosCounter+1; //현재 마지막행
           var addRow = e.files.length; //추가할 사진들 개수
@@ -420,7 +421,7 @@
           html+='  </td>';
           html+='</tr>';
           $('#subPhotosTable > tbody:last').append(html); //하단에 추가.
-          //console.log(rowOrder);
+          //console.log(originalRow);
       }
       //zoom버튼(돋보기)누르면 원본이미지  뜨게 하는 함수 (모달로 바꿔보기..)
       //e=img객체
@@ -441,7 +442,7 @@
       //'x'버튼을 누르면 해당 row를 삭제하는 함수
       //e=버튼 객체
       function removeTableSpecifiedRow(e){
-    	var originalRowSize = Object.size(rowOrder); //기존에 있던 서브사진 로우 수 (정확한 sel_files의 인덱스를 알기위해서는 x버튼이 클릭된 행의 인덱스에서 이것을 빼줘야한다.)
+    	var originalRowSize = Object.size(originalRow); //기존에 있던 서브사진 로우 수 (정확한 sel_files의 인덱스를 알기위해서는 x버튼이 클릭된 행의 인덱스에서 이것을 빼줘야한다.)
         var remove_index=e.parentNode.parentNode.rowIndex; //'x'버튼을 누른 행의 인덱스 (1부터 시작한다.)
         var del_photosubno=$('#subPhotosExplain'+(remove_index-1)).attr('photosubno');
        	if(del_photosubno !== undefined){ // (인덱스가 1부터 시작하므로 -1을 해준다.)
@@ -452,9 +453,9 @@
        			delete updateList[del_photosubno];
        		}
        		
-       		//기존 Row 수 또한 1개 줄어야한다. (rowOrder로 로우수를 체크하기 때문에. 이 함수도 그렇고, previewSubPhoto함수도..)
-       		var del_photoOwnNo=$('#subPhotosExplain'+(remove_index-1)).attr('photoownno'); //rowOrder에서 지워야하기 때문에
-       		delete rowOrder[del_photoOwnNo]; 
+       		//기존 Row 수 또한 1개 줄어야한다. (originalRow로 로우수를 체크하기 때문에. 이 함수도 그렇고, previewSubPhoto함수도..)
+       		var del_photoOwnNo=$('#subPhotosExplain'+(remove_index-1)).attr('photoownno'); //originalRow에서 지워야하기 때문에
+       		delete originalRow[del_photoOwnNo]; 
        	}
        	
         $(e).parent().parent().remove(); //e.parent == td, td.parent == tr이겠지?
@@ -833,21 +834,30 @@
 	  //새로 추가된 row인지 아닌지 판별
 	  var photoownno_before = $subTextArea_before.attr('photoownno'); //방금 변경한 Row의 컨텐츠 DB 고유번호 (전)
 	  var photoownno_after = $subTextArea_after.attr('photoownno'); //방금 변경한 Row의 컨텐츠 DB 고유번호 (후)
+	  
+	  if(photoownno_before!='undefined' && photoownno_after=='undefined'){ //새로운것이 기존것에 올라갔을 때
+		  
+	  }else if(photoownno_before!='undefined' && photoownno_after!='undefined'){ //기존것에 기존것이 올라갔을 때
+		  
+	  }else if(photoownno_before!='undefined' && photoownno_after!='undefined'){ //새로운것에 기존것이 올라갔을 때
+		  
+	  }else if(photoownno_before!='undefined' && photoownno_after!='undefined'){ //기존것에 기존것이 올라갔을 때
+		  
+	  }
+	  
 	  if(photoownno_before=='undefined'){ //새로 추가한 로우에 대해서만 작동하게 하기 (기존에 있던 로우는 sel_files에 없다.)
 		  //실제 파일 순서도 변경해줘야한다.
 		  arrayOrderChanger(sel_files,trNumBefore,trNumAfter);
 		  console.log(sel_files);
-	  }else{ //기존에 있던 로우는 rowOrder에서 순서를 변경해준다.
+	  }else{ //기존에 있던 로우는 originalRow에서 순서를 변경해준다.
 		  //클릭 요소의 순서변경
-		  rowOrder[photoownno_before]=trNumAfter;
+		  originalRow[photoownno_before]=trNumAfter;
 	  	  //위에 있던 요소의 순서변경
 	  	  if(photoownno_after!='undefined'){
-	  		rowOrder[photoownno_after]=trNumBefore;
+	  		originalRow[photoownno_after]=trNumBefore;
 	  	  }
-	  	  
-		  console.log(rowOrder); 
+		  console.log(originalRow); 
 	  }
-	  
   }
   //아래로 이동
   function moveDown(object){
