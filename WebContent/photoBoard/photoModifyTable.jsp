@@ -832,20 +832,24 @@
 	  $subTextArea_after.attr("name","subPhotosExplain"+trNumBefore);
 	  
 	  //새로 추가된 row인지 아닌지 판별
-	  var photoownno_before = $subTextArea_before.attr('photoownno'); //방금 변경한 Row의 컨텐츠 DB 고유번호 (전)
-	  var photoownno_after = $subTextArea_after.attr('photoownno'); //방금 변경한 Row의 컨텐츠 DB 고유번호 (후)
+	  var photoownno_before = $subTextArea_before.attr('photoownno'); //방금 변경한 Row의 컨텐츠 테이블 순서 (전)
+	  var photoownno_after = $subTextArea_after.attr('photoownno'); //방금 변경한 Row의 컨텐츠 테이블 순서 (후)
 	  
-	  if(photoownno_before!='undefined' && photoownno_after=='undefined'){ //새로운것이 기존것에 올라갔을 때
-		  
-	  }else if(photoownno_before!='undefined' && photoownno_after!='undefined'){ //기존것에 기존것이 올라갔을 때
-		  
-	  }else if(photoownno_before!='undefined' && photoownno_after!='undefined'){ //새로운것에 기존것이 올라갔을 때
-		  
-	  }else if(photoownno_before!='undefined' && photoownno_after!='undefined'){ //기존것에 기존것이 올라갔을 때
-		  
+	  if(photoownno_before!='undefined' && photoownno_after=='undefined'){ //기존것이 새로운에 올라갔을 때
+		  console.log('기존것이 새로운에 올라갔을 때');
+	  }else if(photoownno_before!='undefined' && photoownno_after!='undefined'){ //기존것이 기존것에 올라갔을 때
+		  console.log('기존것이 기존것에 올라갔을 때');
+	  	  
+		  rowOrderChange[photoownno_before]=photoownno_after;
+		  rowOrderChange[photoownno_after]=photoownno_before;
+		  console.log(rowOrderChange);
+	  }else if(photoownno_before=='undefined' && photoownno_after!='undefined'){ //새로운것이 기존것에 올라갔을 때
+		  console.log('새로운것이 기존것에 올라갔을 때');
+	  }else if(photoownno_before=='undefined' && photoownno_after=='undefined'){ //새로운것이 새로운것에 올라갔을 때
+		  console.log('새로운것이 새로운것에 올라갔을 때');
 	  }
 	  
-	  if(photoownno_before=='undefined'){ //새로 추가한 로우에 대해서만 작동하게 하기 (기존에 있던 로우는 sel_files에 없다.)
+	  /* if(photoownno_before=='undefined'){ //새로 추가한 로우에 대해서만 작동하게 하기 (기존에 있던 로우는 sel_files에 없다.)
 		  //실제 파일 순서도 변경해줘야한다.
 		  arrayOrderChanger(sel_files,trNumBefore,trNumAfter);
 		  console.log(sel_files);
@@ -857,7 +861,7 @@
 	  		originalRow[photoownno_after]=trNumBefore;
 	  	  }
 		  console.log(originalRow); 
-	  }
+	  } */
   }
   //아래로 이동
   function moveDown(object){
