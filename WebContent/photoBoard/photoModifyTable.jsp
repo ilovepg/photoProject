@@ -140,23 +140,6 @@
     		    </tr>
     		  </thead>
     		  <tbody>
-    		    <!-- <tr style="height:180px;">
-    		      <td valign="top">
-                <img style="margin:0 auto;" id="subPhotoImg0" onclick="clickEventAction('subPhotoUpload',this);" src="./Resource/images/photoplus.png"/>
-                <input type="file" id="subPhotos0" name="subPhotos0" class="show-for-sr" value="add.png" onchange="previewSubPhoto(this);" multiple/>
-                <div style="text-align:center; margin-top:10px;">
-                  <img src="./Resource/images/photozoom.png" onclick="imagesZoom(this);">
-                </div>
-              </td>
-    		      <td style="height:150px;">
-                <label style="height:100%; width:100%;">
-                  <textarea style="height:100%; width:100%;" id="subPhotosExplain0" name="subPhotosExplain0" placeholder="사진에 대해 설명해주세요."></textarea>
-                </label>
-              </td>
-    		      <td>
-                <button type="button" class="button alert" onclick="removeTableSpecifiedRow(this);"><img src="./Resource/images/imgRemoveBtn.png"/></button>
-              </td>
-    		    </tr> -->
     		  </tbody>
           <tfoot class="noColor">
             <tr>
@@ -188,7 +171,7 @@
 		}	
     	
 		// 업로드될 이미지 정보들, 제목을 담을 변수들
-	    var sel_files = [];
+	    var sel_files = {};
 	    var mainPhotoArray = []; 
 		var original_subject; //사용자가 제목을 바꾸었는지 알기 위해서 전역변수로 제목을 선언한 후 비교한다. 
 		var original_review; //사용자가 한줄평을 바꾸었는지 알기 위해서 전역변수로 한줄평을 선언한 후 비교한다.
@@ -339,37 +322,39 @@
       
       // 서브이미지 선택시 미리보기 (수정시에 활용될듯)
       function previewSubPhoto(e){
-    	  var originalRowSize = Object.size(originalRow); //기존에 있던 서브사진 로우 수 (정확한 sel_files의 인덱스를 알기위해서는 x버튼이 클릭된 행의 인덱스에서 이것을 빼줘야한다.)
-    	  var index = clickedImgIndex; //클릭한 행
-          var lastRowCount = subPhotosCounter+1; //현재 마지막행
-          var addRow = e.files.length; //추가할 사진들 개수
-         	var toBeAddRowCount = addRow+index; //더해져야할 행
-         	while(toBeAddRowCount>lastRowCount){ //현재 행수가 부족하면 그만큼 더해준다. 
-         		lastRowCount++;
-         		tableRowAdd();
-         	}
-      
-          for(var i=0; i<addRow; i++){
-        	//sel_files에서 해당 로우의 데이터를 삭제해야 submit했을 때 삭제된 데이터가 들어가지 않는다. (새로 추가한 행을 삭제했을 때만)
-            if(originalRowSize<=index){ //선택한 행이 기존에 있던 행보다 크다면 새로 추가한 행이라고 판단!
-            	sel_files.splice(index-originalRowSize, 1, e.files[i]); //배열에 index의 파일을 먼저 지우고(있으면) 배열에 삽입인덱스에서 이것을 빼줘야한다.)
-            }else{
-            	sel_files.splice(index, 1, e.files[i]); //배열에 index의 파일을 먼저 지우고(있으면) 배열에 삽입	
-            } 
-          	let subimg = document.getElementById('subPhotoImg'+index); //해당 인덱스(행)에 해당하는 이미지 태그를 가져온다.
-          	//console.log(subimg);
-          	//console.log(e.files[i]);
-          	//선택한 이미지를 FileReader로 읽어서 이미지의 src속성에 넣어주는 부분.
-              let file = e.files[i];
-              let reader = new FileReader();
-              reader.onload = function (event) {
-                    subimg.src = event.target.result;
-              }
-              reader.readAsDataURL(file);
-          	index++;
-          }
-          console.log(sel_files);
-      }
+    	 var originalRowSize = Object.size(originalRow); //기존에 있던 서브사진 로우 수 (정확한 sel_files의 인덱스를 알기위해서는 x버튼이 클릭된 행의 인덱스에서 이것을 빼줘야한다.)
+    	 var index = clickedImgIndex; //클릭한 행 (0부터 시작)
+         var lastRowCount = subPhotosCounter+1; //현재 마지막행
+         var addRow = e.files.length; //추가할 사진들 개수
+         var toBeAddRowCount = addRow+index; //더해져야할 행
+         while(toBeAddRowCount>lastRowCount){ //현재 행수가 부족하면 그만큼 더해준다. 
+         	lastRowCount++;
+         	tableRowAdd();
+         }
+      	 for(var i=0; i<addRow; i++){
+      		var subPhotosExplain=document.querySelector('#subPhotosExplain'+index); //클릭한 행의 내용DOM (photoSubNo를 추출하기 위함)
+         	var photoSubNo = subPhotosExplain.getAttribute('photosubno'); //새로 추가된 행에는 이 값이 없음.
+      		 
+        	if(photoSubNo != 'undefined'){ //기존에 있던 행일 때
+        		updateList[index]=e.files[i];
+			}else{ //새로 추가된 행일 때
+				//Array.prototype.splice.call(sel_files,index,1,e.files[i]);
+				sel_files[index]=e.files[i];
+			}
+			let subimg = document.getElementById('subPhotoImg'+index); //해당 인덱스(행)에 해당하는 이미지 태그를 가져온다.
+            //console.log(subimg);
+            //console.log(e.files[i]);
+            //선택한 이미지를 FileReader로 읽어서 이미지의 src속성에 넣어주는 부분.
+			let file = e.files[i];
+			let reader = new FileReader();
+			reader.onload = function (event) {
+				subimg.src = event.target.result;
+			}
+			reader.readAsDataURL(file);
+			index++;
+			}
+			console.log(sel_files);
+		}
 	  
       
       /*
@@ -451,7 +436,7 @@
     	var originalRowSize = Object.size(originalRow); //기존에 있던 서브사진 로우 수 (정확한 sel_files의 인덱스를 알기위해서는 x버튼이 클릭된 행의 인덱스에서 이것을 빼줘야한다.)
         var remove_index=e.parentNode.parentNode.rowIndex; //'x'버튼을 누른 행의 인덱스 (1부터 시작한다.)
         var del_photosubno=$('#subPhotosExplain'+(remove_index-1)).attr('photosubno');
-       	if(del_photosubno !== undefined){ // (인덱스가 1부터 시작하므로 -1을 해준다.)
+       	if(del_photosubno != 'undefined'){ // (인덱스가 1부터 시작하므로 -1을 해준다.)
        		//수정페이지에서 새로 추가한 사진을 지우는 것이 아니라 원래 있던 사진을 지우는 것이라면 delList에 추가해서 서버로 보낸다.
        		delList.push(del_photosubno);
        		var result=isContainUpdateList(del_photosubno);
@@ -461,7 +446,10 @@
        		
        		//기존 Row 수 또한 1개 줄어야한다. (originalRow로 로우수를 체크하기 때문에. 이 함수도 그렇고, previewSubPhoto함수도..)
        		var del_photoOwnNo=$('#subPhotosExplain'+(remove_index-1)).attr('photoownno'); //originalRow에서 지워야하기 때문에
-       		delete originalRow[del_photoOwnNo]; 
+       		delete originalRow[del_photoOwnNo];
+       	}else{ //새로 추가된 행을 삭제한거라면
+       		//sel_files에서 해당 로우의 데이터를 삭제해야 submit했을 때 삭제된 데이터가 들어가지 않는다.
+       		delete sel_files[remove_index-1];
        	}
        	
         $(e).parent().parent().remove(); //e.parent == td, td.parent == tr이겠지?
@@ -472,14 +460,6 @@
           var index = $(this).parent().parent().closest('tr').prevAll().length; //index값을 가져온다.
           $(this).attr('id','subPhotoImg'+index);
         });
-
-        //Row가 지워졌으니 그 아래의 값들은 인덱스가 바뀌어야함(id,name) - input
-        //현재는 전체를 다 바꾸는데 후에는 제거한 row의 아래값들만 바꾸게 변경
-        /* $("#subPhotosTable tr td > input").each(function(i,item){//첫번째부터 차례대로 td의 input을 가져온다.
-          var index = $(this).parent().parent().closest('tr').prevAll().length; //index값을 가져온다.
-          $(this).attr('id','subPhotos'+index);
-          $(this).attr('name','subPhotos'+index);
-        }); */
 
         //Row가 지워졌으니 그 아래의 값들은 인덱스가 바뀌어야함(id,name) - textarea
         //현재는 전체를 다 바꾸는데 후에는 제거한 row의 아래값들만 바꾸게 변경
@@ -496,10 +476,6 @@
           $(this).attr('photoownno',index);
         });
         
-        //sel_files에서 해당 로우의 데이터를 삭제해야 submit했을 때 삭제된 데이터가 들어가지 않는다. (새로 추가한 행을 삭제했을 때만)
-        if(originalRowSize<remove_index){ //선택한 행이 기존에 있던 행보다 크다면 새로 추가한 행을 삭제한 것으로 판단.
-	        sel_files.splice(remove_index-originalRowSize-1,1); //(정확한 sel_files의 인덱스를 알기위해서는 x버튼이 클릭된 행의 인덱스에서 이것을 빼줘야한다.)
-        }
       	//동적 생성할 때 index값으로 쓰이는 변수 또한 -1 시켜줘야한다.
         subPhotosCounter--;
       }
@@ -566,10 +542,10 @@
        	//추가된 서브사진들의 내용을 차례대로 배열에 삽입.
         for(var i=0; i<=subPhotosCounter; i++){
         	var $contentObj = $('#subPhotosExplain'+i); //TextArea 객체
-        	var photoSubNo=$contentObj.attr('photoSubNo');
+        	var photoSubNo=$contentObj.attr('photoSubNo'); //photoSubNo
         	var content = $contentObj.val(); //내용 value
         	//내용에 공백이 있는지 확인
-        	if(content == null || content.replace(blank_pattern, '')==""){
+        	if(content == null || content.replace(blank_pattern, '')==""){ //기존 내용
         		$('#subPhotosExplain'+i).focus(); //공백이 있다면 그곳으로 포커스 이동
         		alert('내용에 공백만 입력되었습니다 ');
         		return ;
@@ -850,75 +826,78 @@
 	$subTextArea_before.attr("photoownno",photoownno_after);  //photoownno 변경
 	$subTextArea_after.attr("photoownno",photoownno_before);
 	
-	  /* if(photoownno_before!='undefined' && photoownno_after=='undefined'){ //기존것이 새로운것에 올라갔을 때
-		console.log('기존것이 새로운것에 올라갔을 때');
-	   
-		rowOrderChange[trNumBefore]=photoownno_after; //기존것 순서 변경
-		rowOrderChange['sel_files'+trNumAfter]=photoownno_before; //새로운 것 순서 변경
-		console.log(rowOrderChange);
-	  }else if(photoownno_before!='undefined' && photoownno_after!='undefined'){ //기존것이 기존것에 올라갔을 때
-		console.log('기존것이 기존것에 올라갔을 때');
-	  	//위와 아래의 순서를 바꿔준다.
-		rowOrderChange[trNumBefore]=photoownno_after;
-		rowOrderChange[trNumAfter]=photoownno_before;
-		//만약 순서 바뀐 것이 제대로 돌아왔다면 (0:0, 1:1 이런식으로 키와 값이 같다면)
-		//순서 바뀐 것을 저장하는 객체에서 지워준다.
-		if(trNumBefore==photoownno_after)  
-			delete rowOrderChange[trNumBefore]; 
-		if(trNumAfter==photoownno_before)
-			delete rowOrderChange[trNumAfter];
-		console.log(rowOrderChange);
-	  }else if(photoownno_before=='undefined' && photoownno_after!='undefined'){ //새로운것이 기존것에 올라갔을 때
-		console.log('새로운것이 기존것에 올라갔을 때');
-		console.log('before:',trNumBefore,'after:',trNumAfter);
-		rowOrderChange['sel_files'+trNumBefore]=trNumAfter+""; //새로운 것 순서 변경
-		rowOrderChange[trNumAfter]=trNumBefore+""; //기존 것 순서 변경
-		console.log(rowOrderChange);
-	  
-	  }else if(photoownno_before=='undefined' && photoownno_after=='undefined'){ //새로운것이 새로운것에 올라갔을 때
-		console.log('새로운것이 새로운것에 올라갔을 때');
-	  } */
-	  
-	  /* if(photoownno_before=='undefined'){ //새로 추가한 로우에 대해서만 작동하게 하기 (기존에 있던 로우는 sel_files에 없다.)
-		  //실제 파일 순서도 변경해줘야한다.
-		  arrayOrderChanger(sel_files,trNumBefore,trNumAfter);
-		  console.log(sel_files);
-	  }else{ //기존에 있던 로우는 originalRow에서 순서를 변경해준다.
-		  //클릭 요소의 순서변경
-		  originalRow[photoownno_before]=trNumAfter;
-	  	  //위에 있던 요소의 순서변경
-	  	  if(photoownno_after!='undefined'){
-	  		originalRow[photoownno_after]=trNumBefore;
-	  	  }
-		  console.log(originalRow); 
-	  } */
+	//textArea photoSubNo로 새로 추가된 행인지 기존 행인지 판별
+	var photosubno_before=$('#subPhotosExplain'+trNumBefore).attr('photosubno');
+	var photosubno_after=$('#subPhotosExplain'+trNumAfter).attr('photosubno'); 
+	//var photosubno_before=$subTextArea_before.attr('photosubno');
+	//var photosubno_after=$subTextArea_after.attr('photosubno');
+	console.log(trNumBefore,'행 photosubno_before:',photosubno_before,trNumAfter,'행 photosubno_after:',photosubno_after);
+	console.log('photoownno_before:',photoownno_before,'photoownno_after:',photoownno_after);
+	
+	//실제 파일 순서도 변경해줘야한다.
+	if(photosubno_before=='undefined' && photosubno_after=='undefined'){ //순서변경 후 아래와 위 행 모두 새로 추가된 행일 때
+		objectValueInterChange(sel_files,trNumBefore,trNumAfter);
+	}else if(photosubno_before!='undefined' && photosubno_after!='undefined'){//순서변경 후 아래와 위 행 모두 기존 행일 때
+		objectValueInterChange(updateList,trNumBefore,trNumAfter);
+	}else {
+		objectPropertyChange(updateList,trNumAfter,trNumBefore);
+		objectPropertyChange(sel_files,trNumBefore,trNumAfter);
+	}
   }
+  
   //아래로 이동
   function moveDown(object){
-	  //let parentNode = object.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode; 
-	  //let original_index=parentNode.rowIndex; //버튼을 누른 행의 인덱스 (1부터 시작한다.)
-	  let $tr = $(object).parent().parent().parent().parent().parent().parent(); // 클릭한 버튼이 속한 tr 요소
-	  let trNumBefore = $tr.closest('tr').prevAll().length; //순서 바꾸기 전 index
-	  $tr.next().after($tr); // 현재 tr 의 다음 tr 뒤에 선택한 tr 넣기 (순서 바꾸기)
-	  let trNumAfter = $tr.closest('tr').prevAll().length; //순서 바꾼 후 index
-	  
-	  //순서가 바뀌었으니 id값 변경
-	  //img태그 id값변경
-	  $subTextArea_before=$('#subPhotoImg'+trNumBefore); //위 tr img
-	  $subTextArea_after=$('#subPhotoImg'+trNumAfter);   //아래 tr img
-	  $subTextArea_before.attr("id","subPhotoImg"+trNumAfter);  
-	  $subTextArea_after.attr("id","subPhotoImg"+trNumBefore); 
-	  //textArea id값,name값 변경
-	  $subTextArea_before=$('#subPhotosExplain'+trNumBefore); //위 tr textArea
-	  $subTextArea_after=$('#subPhotosExplain'+trNumAfter);   //아래 tr textArea
-	  $subTextArea_before.attr("id","subPhotosExplain"+trNumAfter);  //ID 변경
-	  $subTextArea_after.attr("id","subPhotosExplain"+trNumBefore);
-	  $subTextArea_before.attr("name","subPhotosExplain"+trNumAfter);  //NAME변경
-	  $subTextArea_after.attr("name","subPhotosExplain"+trNumBefore);
-	  //실제 파일 순서도 변경해줘야한다.
-	  arrayOrderChanger(sel_files,trNumBefore,trNumAfter);
-	  console.log(sel_files);
+	//let parentNode = object.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode; 
+	//let original_index=parentNode.rowIndex; //버튼을 누른 행의 인덱스 (1부터 시작한다.)
+	let $tr = $(object).parent().parent().parent().parent().parent().parent(); // 클릭한 버튼이 속한 tr 요소
+	let trNumBefore = $tr.closest('tr').prevAll().length; //순서 바꾸기 전 index
+	$tr.next().after($tr); // 현재 tr 의 다음 tr 뒤에 선택한 tr 넣기 (순서 바꾸기)
+	let trNumAfter = $tr.closest('tr').prevAll().length; //순서 바꾼 후 index
+	
+	//순서가 바뀌었으니 id값 변경
+	//img태그 id값변경
+	$subTextArea_before=$('#subPhotoImg'+trNumBefore); //위 tr img
+	$subTextArea_after=$('#subPhotoImg'+trNumAfter);   //아래 tr img
+	$subTextArea_before.attr("id","subPhotoImg"+trNumAfter);  
+	$subTextArea_after.attr("id","subPhotoImg"+trNumBefore); 
+	//textArea id값,name값 변경
+	$subTextArea_before=$('#subPhotosExplain'+trNumBefore); //위 tr textArea
+	$subTextArea_after=$('#subPhotosExplain'+trNumAfter);   //아래 tr textArea
+	$subTextArea_before.attr("id","subPhotosExplain"+trNumAfter);  //ID 변경
+	$subTextArea_after.attr("id","subPhotosExplain"+trNumBefore);
+	$subTextArea_before.attr("name","subPhotosExplain"+trNumAfter);  //NAME변경
+	$subTextArea_after.attr("name","subPhotosExplain"+trNumBefore);
+	
+	//textArea photoownno 변경
+	var photoownno_before = $subTextArea_before.attr('photoownno'); //방금 변경한 Row의 컨텐츠 테이블 순서 (전)
+	var photoownno_after = $subTextArea_after.attr('photoownno'); //방금 변경한 Row의 컨텐츠 테이블 순서 (후)
+	$subTextArea_before.attr("photoownno",photoownno_after);  //photoownno 변경
+	$subTextArea_after.attr("photoownno",photoownno_before);
+	
+	//textArea photoSubNo로 새로 추가된 행인지 기존 행인지 판별
+	var photosubno_before=$('#subPhotosExplain'+trNumBefore).attr('photosubno');
+	var photosubno_after=$('#subPhotosExplain'+trNumAfter).attr('photosubno'); 
+	//var photosubno_before=$subTextArea_before.attr('photosubno');
+	//var photosubno_after=$subTextArea_after.attr('photosubno');
+	console.log(trNumBefore,'행 photosubno_before:',photosubno_before,trNumAfter,'행 photosubno_after:',photosubno_after);
+	console.log('photoownno_before:',photoownno_before,'photoownno_after:',photoownno_after);
+	
+	//실제 파일 순서도 변경해줘야한다.
+	if(photosubno_before=='undefined' && photosubno_after=='undefined'){ //순서변경 후 아래와 위 행 모두 새로 추가된 행일 때
+		objectValueInterChange(sel_files,trNumBefore,trNumAfter);
+	}else if(photosubno_before!='undefined' && photosubno_after!='undefined'){//순서변경 후 아래와 위 행 모두 기존 행일 때
+		objectValueInterChange(updateList,trNumBefore,trNumAfter);
+	}else if(photosubno_before!='undefined' && photosubno_after=='undefined'){ //순서변경 후 아래의 행이 기존 행일 때
+		objectPropertyChange(updateList,trNumBefore,trNumAfter);
+		objectPropertyChange(sel_files,trNumAfter,trNumBefore);
+	}else if(photosubno_before=='undefined' && photosubno_after!='undefined'){ //순서변경 후 아래의 행이 새로운 행일 때
+		objectPropertyChange(sel_files,trNumBefore,trNumAfter);
+		objectPropertyChange(updateList,trNumAfter,trNumBefore);
+	}
+	console.log("updateList",updateList);
+	console.log("sel_files",sel_files);
   }
+  
   //맨아래로 이동
   function moveBottom(object){
 	  let $tr = $(object).parent().parent().parent().parent().parent().parent(); // 클릭한 버튼이 속한 tr 요소
@@ -963,8 +942,37 @@
 	  arr.splice(from,1); //제거
 	  arr.push(elem); //배열 뒤에 추가
   }
-  	
-    </script>
+  
+  /*
+	객체의 프로퍼티명을 변경 (값은 그대로)
+	@param obj:프로퍼티 변경을 하기위한 객체
+	@param oldProperty:기존 속성
+	@param newProperty:새로운 속성
+  */
+  function objectPropertyChange(obj,oldProperty,newProperty){
+	if(obj.hasOwnProperty(oldProperty)){ //해당 속성이 존재하는지 확인
+		obj[newProperty]=obj[oldProperty]; //존재한다면 기존 속성의 값을 새로운 속성의 값으로 변경
+		delete obj[oldProperty]; //기존 프로퍼티를 지워준다.
+	}
+  }
+	
+  /*
+	객체의 값을 변경
+	@param obj:값 변경을 하기위한 객체
+	@param firstProperty:1속성
+	@param secondProperty:2속성
+  */
+  function objectValueInterChange(obj,firstProperty,secondProperty){
+	  if(obj.hasOwnProperty(firstProperty) || obj.hasOwnProperty(secondProperty)){
+		  //속성 2개중에 1개만 있어도 작동되게끔한다.
+		  let tempValue=obj[firstProperty];
+		  obj[firstProperty]=obj[secondProperty];
+		  obj[secondProperty]=tempValue;
+	  }
+  }
+  
+  
+</script>
 
 
   </body>
