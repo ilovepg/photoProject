@@ -171,7 +171,9 @@
 		}	
     	
 		// 업로드될 이미지 정보들, 제목을 담을 변수들
-	    var sel_files = {};
+	    var sel_files = {
+				'length':0
+		};
 	    var mainPhotoArray = []; 
 		var original_subject; //사용자가 제목을 바꾸었는지 알기 위해서 전역변수로 제목을 선언한 후 비교한다. 
 		var original_review; //사용자가 한줄평을 바꾸었는지 알기 위해서 전역변수로 한줄평을 선언한 후 비교한다.
@@ -179,7 +181,9 @@
 		var original_contents={}; //사용자가 서브사진 내용을 변경하였는지 확인하기 위한 객체
 		
 		//서브사진 수정사항
-		var updateList = {}; //사용자가 수정한 서브사진 리스트 (객체로 만든 이유는 subPhotoNo를 key, File을 name으로 하기위해서)
+		var updateList = {
+				'length':0
+		}; //사용자가 수정한 서브사진 리스트 (객체로 만든 이유는 subPhotoNo를 key, File을 name으로 하기위해서)
 		var updateContentList = {}; //사용자가 수정한 서브사진 내용 (객체로 만든 이유는 subPhotoNo를 key, File을 name으로 하기위해서)
 		var delList = []; //사용자가 지운 서브사진 리스트
 		var originalRow = {}; //추가된 것이 아니라 기존에 있던 로우
@@ -322,7 +326,7 @@
       
       // 서브이미지 선택시 미리보기 (수정시에 활용될듯)
       function previewSubPhoto(e){
-    	 var originalRowSize = Object.size(originalRow); //기존에 있던 서브사진 로우 수 (정확한 sel_files의 인덱스를 알기위해서는 x버튼이 클릭된 행의 인덱스에서 이것을 빼줘야한다.)
+    	 //var originalRowSize = Object.size(originalRow); //기존에 있던 서브사진 로우 수 (정확한 sel_files의 인덱스를 알기위해서는 x버튼이 클릭된 행의 인덱스에서 이것을 빼줘야한다.)
     	 var index = clickedImgIndex; //클릭한 행 (0부터 시작)
          var lastRowCount = subPhotosCounter+1; //현재 마지막행
          var addRow = e.files.length; //추가할 사진들 개수
@@ -337,9 +341,11 @@
       		 
         	if(photoSubNo != 'undefined'){ //기존에 있던 행일 때
         		updateList[index]=e.files[i];
+        		updateList.length++; //유사배열객체이므로 length를 수동으로 ++
 			}else{ //새로 추가된 행일 때
 				//Array.prototype.splice.call(sel_files,index,1,e.files[i]);
 				sel_files[index]=e.files[i];
+				sel_files.length++; //유사배열객체이므로 length를 수동으로 ++
 			}
 			let subimg = document.getElementById('subPhotoImg'+index); //해당 인덱스(행)에 해당하는 이미지 태그를 가져온다.
             //console.log(subimg);
@@ -433,15 +439,17 @@
       //'x'버튼을 누르면 해당 row를 삭제하는 함수
       //e=버튼 객체
       function removeTableSpecifiedRow(e){
-    	var originalRowSize = Object.size(originalRow); //기존에 있던 서브사진 로우 수 (정확한 sel_files의 인덱스를 알기위해서는 x버튼이 클릭된 행의 인덱스에서 이것을 빼줘야한다.)
+    	//var originalRowSize = Object.size(originalRow); //기존에 있던 서브사진 로우 수 (정확한 sel_files의 인덱스를 알기위해서는 x버튼이 클릭된 행의 인덱스에서 이것을 빼줘야한다.)
         var remove_index=e.parentNode.parentNode.rowIndex; //'x'버튼을 누른 행의 인덱스 (1부터 시작한다.)
         var del_photosubno=$('#subPhotosExplain'+(remove_index-1)).attr('photosubno');
+        var del_photoownno=$('#subPhotosExplain'+(remove_index-1)).attr('photoownno');
        	if(del_photosubno != 'undefined'){ // (인덱스가 1부터 시작하므로 -1을 해준다.)
        		//수정페이지에서 새로 추가한 사진을 지우는 것이 아니라 원래 있던 사진을 지우는 것이라면 delList에 추가해서 서버로 보낸다.
-       		delList.push(del_photosubno);
-       		var result=isContainUpdateList(del_photosubno);
+       		delList.push(del_photosubno); //del_list에는 subNo가 들어간다.
+       		var result=isContainUpdateList(del_photoownno); //updateList에는 photoownno로 검색해야함. (updateList는 photoownno가 키값)
        		if(result==true){ //updateList에 값이 있었다면 updateList에서 빼준다. 어차피 삭제한거니까.
-       			delete updateList[del_photosubno];
+       			delete updateList[del_photoownno]; //updateList에는 photoownno가 키값임.
+       			updateList.length--; //유사배열객체이므로 length를 수동으로--
        		}
        		
        		//기존 Row 수 또한 1개 줄어야한다. (originalRow로 로우수를 체크하기 때문에. 이 함수도 그렇고, previewSubPhoto함수도..)
@@ -450,6 +458,7 @@
        	}else{ //새로 추가된 행을 삭제한거라면
        		//sel_files에서 해당 로우의 데이터를 삭제해야 submit했을 때 삭제된 데이터가 들어가지 않는다.
        		delete sel_files[remove_index-1];
+       		sel_files.length--; //유사배열객체이므로 length를 수동으로 --
        	}
        	
         $(e).parent().parent().remove(); //e.parent == td, td.parent == tr이겠지?
@@ -782,6 +791,9 @@
 	  let $tbody = $tr.parent(); //클릭한 요소의 tbody (subPhotosTable)
 	  $tbody.find('tr:first').before($tr);//첫번째 tr 찾아서 그 앞에 클릭한 tr 요소 넣기
 	  
+	  //textArea photoSubNo로 새로 추가된 행인지 기존 행인지 판별
+	  var photosubno_before=$('#subPhotosExplain'+trNumBefore).attr('photosubno');
+	  
 	  //img 태그 index 재정렬
       $("#subPhotosTable tr td > img").each(function(i,item){//첫번째부터 차례대로 td의 img src속성값을 가져온다.
         var index = $(this).parent().parent().closest('tr').prevAll().length; //index값을 가져온다.
@@ -793,9 +805,14 @@
         var index = $(this).parent().parent().closest('tr').prevAll().length; //index값을 가져온다.
         $(this).attr('id','subPhotosExplain'+index);
         $(this).attr('name','subPhotosExplain'+index);
+        $(this).attr('photoownno',index);
       });
-      arrayFirstElemChanger(sel_files,trNumBefore);
-      
+	  
+	  console.log('trNumBefore',trNumBefore,'trNumAfter',trNumAfter);
+	  if(photosubno_before=='undefined') //새로운 행일 때
+		  arrayFirstElemChanger(sel_files,trNumBefore); 
+	  else //기존행 일때
+		  arrayFirstElemChanger(updateList,trNumBefore);
   }
   //위로 이동
   function moveUp(object){
@@ -904,6 +921,9 @@
 	  $tr.remove(); //tr삭제
 	  $('#subPhotosTable > tbody:last').append($tr); //하단에 추가.
 	  
+	  //textArea photoSubNo로 새로 추가된 행인지 기존 행인지 판별
+	  var photosubno_before=$('#subPhotosExplain'+trNumBefore).attr('photosubno');
+	  
 	  //img 태그 index 재정렬
       $("#subPhotosTable tr td > img").each(function(i,item){//첫번째부터 차례대로 td의 img src속성값을 가져온다.
         var index = $(this).parent().parent().closest('tr').prevAll().length; //index값을 가져온다.
@@ -917,36 +937,48 @@
         $(this).attr('name','subPhotosExplain'+index);
         $(this).attr('photoownno',index);
       });
-	  
-	  //textArea photoSubNo로 새로 추가된 행인지 기존 행인지 판별
-	  var photosubno_before=$('#subPhotosExplain'+trNumBefore).attr('photosubno');
-	  if(photosubno_before=='undefined') 
-		  arrayLastElemChanger(sel_files,trNumBefore); 
-	  else
-		  arrayLastElemChanger(updateList,trNumBefore);
+      let trNumAfter = $tr.closest('tr').prevAll().length; //순서 바꾼 후 index, 즉 맨 마지막 번호
+	  console.log('trNumBefore',trNumBefore,'trNumAfter',trNumAfter);
+	  if(photosubno_before=='undefined') //새로운 행 일때
+		  arrayLastElemChanger(sel_files,trNumBefore,trNumAfter); 
+	  else //기존 행 일때
+		  arrayLastElemChanger(updateList,trNumBefore,trNumAfter);
   }
     
     
     
   /*
-  	배열,객체 맨앞에으로 순서 변경ㅇ
+  	배열,객체 맨앞에으로 순서 변경
   	@param arr : 변경될 배열
   	@param from : 요소의 현재 위치
   */
   function arrayFirstElemChanger(arr,from){
 	  let elem = arr[from]; //맨 처음에 넣어질 요소
-	  Array.prototype.splice.call(arr,from,1); //제거
-	  Array.prototype.unshift.call(arr,elem); //배열 맨앞에 추가
+	  if(Array.isArray(arr)){ //Array였을 때
+		  arr.splice.call(arr,from,1);  
+		  arr.unshift.call(arr,elem); //배열 맨앞에 추가
+	  }else{ //객체였을 때
+		  //for(let i=0; i<)
+	  }
+	  
   }
   
   /*배열,객체 맨뒤로 순서 변경
   	@param arr : 변경될 배열
   	@param from : 요소의 현재 위치
+  	@param to : 배열의 맨 마지막 위치
   */
-  function arrayLastElemChanger(arr,from){
+  function arrayLastElemChanger(arr,from,to){
 	  let elem = arr[from]; //맨 마지막에 넣어질 요소
-	  Array.prototype.splice.call(arr,from,1); //제거
-	  Array.prototype.push.call(arr,elem); //배열 뒤에 추가
+	  if(Array.isArray(arr)){ //Array였을 때
+		arr.splice.call(arr,from,1);  
+	  }else{ //객체였을 때
+		for(let i=from; i<to; i++){ //요소를 하나씩 앞으로 당겨준다.
+		 	if(arr.hasOwnProperty(i+1)) //맨 마지막 요소는 +1해도 없을 것이기 때문에.
+		 		arr[i]=arr[i+1];
+		}
+	  }
+	  arr[to]=elem;
   }
   
   /*
