@@ -831,15 +831,16 @@
 	var photosubno_after=$('#subPhotosExplain'+trNumAfter).attr('photosubno'); 
 	//var photosubno_before=$subTextArea_before.attr('photosubno');
 	//var photosubno_after=$subTextArea_after.attr('photosubno');
-	console.log(trNumBefore,'행 photosubno_before:',photosubno_before,trNumAfter,'행 photosubno_after:',photosubno_after);
-	console.log('photoownno_before:',photoownno_before,'photoownno_after:',photoownno_after);
 	
 	//실제 파일 순서도 변경해줘야한다.
 	if(photosubno_before=='undefined' && photosubno_after=='undefined'){ //순서변경 후 아래와 위 행 모두 새로 추가된 행일 때
 		objectValueInterChange(sel_files,trNumBefore,trNumAfter);
 	}else if(photosubno_before!='undefined' && photosubno_after!='undefined'){//순서변경 후 아래와 위 행 모두 기존 행일 때
 		objectValueInterChange(updateList,trNumBefore,trNumAfter);
-	}else {
+	}else if(photosubno_before=='undefined' && photosubno_after!='undefined'){//순서변경 후 아래의 행이 기존 행일 때
+		objectPropertyChange(updateList,trNumBefore,trNumAfter);
+		objectPropertyChange(sel_files,trNumAfter,trNumBefore);
+	}else if(photosubno_before!='undefined' && photosubno_after=='undefined'){//순서변경 후 아래가 새로 추가된 행
 		objectPropertyChange(updateList,trNumAfter,trNumBefore);
 		objectPropertyChange(sel_files,trNumBefore,trNumAfter);
 	}
@@ -887,15 +888,13 @@
 		objectValueInterChange(sel_files,trNumBefore,trNumAfter);
 	}else if(photosubno_before!='undefined' && photosubno_after!='undefined'){//순서변경 후 아래와 위 행 모두 기존 행일 때
 		objectValueInterChange(updateList,trNumBefore,trNumAfter);
-	}else if(photosubno_before!='undefined' && photosubno_after=='undefined'){ //순서변경 후 아래의 행이 기존 행일 때
+	}else if(photosubno_before=='undefined' && photosubno_after!='undefined'){//순서변경 후 아래의 행이 기존 행일 때
 		objectPropertyChange(updateList,trNumBefore,trNumAfter);
 		objectPropertyChange(sel_files,trNumAfter,trNumBefore);
-	}else if(photosubno_before=='undefined' && photosubno_after!='undefined'){ //순서변경 후 아래의 행이 새로운 행일 때
-		objectPropertyChange(sel_files,trNumBefore,trNumAfter);
+	}else if(photosubno_before!='undefined' && photosubno_after=='undefined'){//순서변경 후 아래가 새로 추가된 행
 		objectPropertyChange(updateList,trNumAfter,trNumBefore);
+		objectPropertyChange(sel_files,trNumBefore,trNumAfter);
 	}
-	console.log("updateList",updateList);
-	console.log("sel_files",sel_files);
   }
   
   //맨아래로 이동
@@ -916,31 +915,38 @@
         var index = $(this).parent().parent().closest('tr').prevAll().length; //index값을 가져온다.
         $(this).attr('id','subPhotosExplain'+index);
         $(this).attr('name','subPhotosExplain'+index);
+        $(this).attr('photoownno',index);
       });
-      arrayLastElemChanger(sel_files,trNumBefore);
+	  
+	  //textArea photoSubNo로 새로 추가된 행인지 기존 행인지 판별
+	  var photosubno_before=$('#subPhotosExplain'+trNumBefore).attr('photosubno');
+	  if(photosubno_before=='undefined') 
+		  arrayLastElemChanger(sel_files,trNumBefore); 
+	  else
+		  arrayLastElemChanger(updateList,trNumBefore);
   }
     
     
     
   /*
-  	배열 맨앞에으로 순서 변경
+  	배열,객체 맨앞에으로 순서 변경
   	@param arr : 변경될 배열
   	@param from : 요소의 현재 위치
   */
   function arrayFirstElemChanger(arr,from){
 	  let elem = arr[from]; //맨 처음에 넣어질 요소
-	  arr.splice(from,1); //제거
-	  arr.unshift(elem); //배열 맨앞에 추가
+	  Array.prototype.splice.call(arr,from,1); //제거
+	  Array.prototype.unshift.call(arr,elem); //배열 맨앞에 추가
   }
   
-  /*배열 맨뒤로 순서 변경
+  /*배열,객체 맨뒤로 순서 변경
   	@param arr : 변경될 배열
   	@param from : 요소의 현재 위치
   */
   function arrayLastElemChanger(arr,from){
 	  let elem = arr[from]; //맨 마지막에 넣어질 요소
-	  arr.splice(from,1); //제거
-	  arr.push(elem); //배열 뒤에 추가
+	  Array.prototype.splice.call(arr,from,1); //제거
+	  Array.prototype.push.call(arr,elem); //배열 뒤에 추가
   }
   
   /*
