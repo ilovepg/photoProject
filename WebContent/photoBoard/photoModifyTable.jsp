@@ -171,9 +171,12 @@
 		}	
     	
 		// 업로드될 이미지 정보들, 제목을 담을 변수들
-	    var sel_files = {
-				'length':0
-		};
+	    var sel_files = {};
+	    Object.defineProperty(sel_files, 'length', {
+			  value: 0, //속성의 값
+			  enumerable : false, //for-in 구문에 노출이 될지 말지 설정 (console에는 연한색으로 표시)
+			  writable: true //상수형태로 만들지않음
+		});
 	    var mainPhotoArray = []; 
 		var original_subject; //사용자가 제목을 바꾸었는지 알기 위해서 전역변수로 제목을 선언한 후 비교한다. 
 		var original_review; //사용자가 한줄평을 바꾸었는지 알기 위해서 전역변수로 한줄평을 선언한 후 비교한다.
@@ -181,9 +184,13 @@
 		var original_contents={}; //사용자가 서브사진 내용을 변경하였는지 확인하기 위한 객체
 		
 		//서브사진 수정사항
-		var updateList = {
-				'length':0
-		}; //사용자가 수정한 서브사진 리스트 (객체로 만든 이유는 subPhotoNo를 key, File을 name으로 하기위해서)
+		var updateList = {}; //사용자가 수정한 서브사진 리스트 (객체로 만든 이유는 subPhotoNo를 key, File을 name으로 하기위해서)
+		Object.defineProperty(updateList, 'length', {
+			  value: 0, //속성의 값
+			  enumerable : false, //for-in 구문에 노출이 될지 말지 설정 (console에는 연한색으로 표시)
+			  writable: true //상수형태로 만들지않음
+		});
+		
 		var updateContentList = {}; //사용자가 수정한 서브사진 내용 (객체로 만든 이유는 subPhotoNo를 key, File을 name으로 하기위해서)
 		var delList = []; //사용자가 지운 서브사진 리스트
 		var originalRow = {}; //추가된 것이 아니라 기존에 있던 로우
@@ -801,18 +808,23 @@
       });
 
 	  //textArea 태그 index 재정렬
-      $("#subPhotosTable tr td  label > textarea").each(function(i,item){//첫번째부터 차례대로 td안의 laben에 textarea를 가져온다.
+      $("#subPhotosTable tr td  label > textarea").each(function(i,item){//첫번째부터 차례대로 td안의 label에 textarea를 가져온다.
         var index = $(this).parent().parent().closest('tr').prevAll().length; //index값을 가져온다.
         $(this).attr('id','subPhotosExplain'+index);
         $(this).attr('name','subPhotosExplain'+index);
         $(this).attr('photoownno',index);
       });
 	  
-	  console.log('trNumBefore',trNumBefore,'trNumAfter',trNumAfter);
-	  if(photosubno_before=='undefined') //새로운 행일 때
-		  arrayFirstElemChanger(sel_files,trNumBefore); 
-	  else //기존행 일때
-		  arrayFirstElemChanger(updateList,trNumBefore);
+	 // console.log('trNumBefore',trNumBefore);
+	  if(photosubno_before=='undefined'){ //새로운 행일 때
+		arrayFirstElemChanger(sel_files,trNumBefore);
+		//objectOrderPlus(updateList);
+	  }else{ //기존행 일때
+		arrayFirstElemChanger(updateList,trNumBefore);
+		objectOrderPlus(sel_files);
+	  }
+		  
+	  
   }
   //위로 이동
   function moveUp(object){
@@ -955,10 +967,39 @@
   function arrayFirstElemChanger(arr,from){
 	  let elem = arr[from]; //맨 처음에 넣어질 요소
 	  if(Array.isArray(arr)){ //Array였을 때
-		  arr.splice.call(arr,from,1);  
-		  arr.unshift.call(arr,elem); //배열 맨앞에 추가
+		  Array.prototype.splice.call(arr,from,1);
+		  Array.prototype.unshift.call(arr,elem); //배열 맨앞에 추가
 	  }else{ //객체였을 때
-		  //for(let i=0; i<)
+		  let firstKey=-1; //첫번째 키값
+		   /* 굳이 이런 방법을 쓰지 않아도 됨.
+		  for(let i=0; i<arr.length;i++){
+			  if(obj.hasOwnProperty(i)){ //i의 값이 있는지 판별
+				  firstKey=i;
+			  	  break; //맨 처음 true로 들어온 i값이 firstKey이므로 더 이상 반복할 필요가 없다.
+			  }
+		  }  */
+		  firstKey = Object.keys(arr)[0];
+
+		  console.log('arrayFirstElemChanger:',firstKey);
+		  if(arr.hasOwnProperty(from)){
+			  delete arr[from]; //맨 처음에 넣어질 요소를 지운다. (위에서 elem이라는 변수에 옮겨놨기 때문에)
+			  arr.length--; //하나 지워졌으니까 lenght도 --
+		  }
+		  for(key in arr){
+			  key=parseInt(key);
+			  
+			  if(key==firstKey){ //첫 번째 행일 때
+				var nextElem=arr[key+1]; //원래 key에 있던 요소들(key+1로 옮겨질 요소)
+				arr[0]=arr[key];
+			  }else{
+				arr[key+1]=nextElem;
+				var nextElem=arr[key+1]; //원래 key에 있던 요소들(key+1로 옮겨질 요소)
+			  }
+		  }
+		  if(firstKey != -1){
+			  arr[firstKey]=elem;
+			  arr.length++;
+		  }
 	  }
 	  
   }
@@ -973,12 +1014,46 @@
 	  if(Array.isArray(arr)){ //Array였을 때
 		arr.splice.call(arr,from,1);  
 	  }else{ //객체였을 때
+		delete arr[from]; //기존 from은 지워준다.
 		for(let i=from; i<to; i++){ //요소를 하나씩 앞으로 당겨준다.
 		 	if(arr.hasOwnProperty(i+1)) //맨 마지막 요소는 +1해도 없을 것이기 때문에.
 		 		arr[i]=arr[i+1];
 		}
+		//맨 마지막 요소 제거
+		var objSize=Object.size(arr);
+		delete arr[objSize-1];
 	  }
-	  arr[to]=elem;
+	  if(elem !== undefined){
+	  	arr[to]=elem;
+	  }
+  }
+  
+  /*
+  	넘어온 객체의 key값들을 +1한다. (키가 숫자일때)
+  	@param obj : 키를 +1시킬 객체
+  */
+  function objectOrderPlus(obj){
+  	for(key in obj){
+  		key=parseInt(key);
+  		if(typeof(key) == 'number'){ //타입이 number인지 확인
+  			if(nextElem!='undefined'){
+  				let temp = nextElem;
+  				nextElem=obj[key+1]
+  				obj[key+1]=temp;
+  			}else{
+  				var nextElem=obj[key+1];
+  				obj[key+1]=obj[key];
+  			}	
+  			
+			/* if(key==Object.keys(obj)[0]){ //첫 번째 행일 때
+				var nextElem=obj[key+1]; //원래 key에 있던 요소들(key+1로 옮겨질 요소)
+				obj[key+1]=obj[key];
+			}else{
+				obj[key+1]=nextElem;
+				var nextElem=obj[key+1]; //원래 key에 있던 요소들(key+1로 옮겨질 요소)
+			} */
+  		}
+  	} 
   }
   
   /*
