@@ -347,7 +347,8 @@
          	var photoSubNo = subPhotosExplain.getAttribute('photosubno'); //새로 추가된 행에는 이 값이 없음.
       		 
         	if(photoSubNo != 'undefined'){ //기존에 있던 행일 때
-        		updateList[index]=e.files[i];
+        		//updateList[index]=e.files[i];
+        		updateList[photoSubNo]=e.files[i];
         		updateList.length++; //유사배열객체이므로 length를 수동으로 ++
 			}else{ //새로 추가된 행일 때
 				//Array.prototype.splice.call(sel_files,index,1,e.files[i]);
@@ -377,9 +378,9 @@
       */  
       function tableRowAdd(photoSubNo, photoOwnNo){
           subPhotosCounter++; //인덱스 변수 +1;
-          if(photoOwnNo===undefined){ //photoOwnNo가 없다면 즉, '추가하기' 버튼을 눌러서 추가된 행이라면 
+          /* if(photoOwnNo===undefined){ //photoOwnNo가 없다면 즉, '추가하기' 버튼을 눌러서 추가된 행이라면 
     		  photoOwnNo=subPhotosCounter; //마지막 행의 인덱스를 넣어준다.
-    	  }
+    	  } */
     	  
           var subPhotoUpload="onclick="+"clickEventAction('subPhotoUpload',this);"; //서브이미지 클릭했을 때 onclick 이벤트.
           var html='';
@@ -449,17 +450,21 @@
     	//var originalRowSize = Object.size(originalRow); //기존에 있던 서브사진 로우 수 (정확한 sel_files의 인덱스를 알기위해서는 x버튼이 클릭된 행의 인덱스에서 이것을 빼줘야한다.)
         var remove_index=e.parentNode.parentNode.rowIndex; //'x'버튼을 누른 행의 인덱스 (1부터 시작한다.)
         var del_photosubno=$('#subPhotosExplain'+(remove_index-1)).attr('photosubno');
-        var del_photoownno=$('#subPhotosExplain'+(remove_index-1)).attr('photoownno');
+        //var del_photoownno=$('#subPhotosExplain'+(remove_index-1)).attr('photoownno');
        	if(del_photosubno != 'undefined'){ // (인덱스가 1부터 시작하므로 -1을 해준다.)
        		//수정페이지에서 새로 추가한 사진을 지우는 것이 아니라 원래 있던 사진을 지우는 것이라면 delList에 추가해서 서버로 보낸다.
-       		delList.push(del_photosubno); //del_list에는 subNo가 들어간다.
-       		var result=isContainUpdateList(del_photoownno); //updateList에는 photoownno로 검색해야함. (updateList는 photoownno가 키값)
+       		delList.push(del_photosubno);
+       		var result=isContainObject(updateList,del_photosubno); //updateList에 photosubno가 있는지 확인
        		if(result==true){ //updateList에 값이 있었다면 updateList에서 빼준다. 어차피 삭제한거니까.
-       			delete updateList[del_photoownno]; //updateList에는 photoownno가 키값임.
+       			delete updateList[del_photosubno]; //updateList에는 photoownno가 키값임.
        			updateList.length--; //유사배열객체이므로 length를 수동으로--
        		}
+       		result=isContainObject(updateContentList,del_photosubno); //updateContentList에 photosubno가 있는지 확인
+       		if(result==true){//updateContentList에 값이 있었다면 updateList에서 빼준다. 어차피 삭제한거니까.
+       			delete updateContentList[del_photosubno];
+       		}
        		
-       		//기존 Row 수 또한 1개 줄어야한다. (originalRow로 로우수를 체크하기 때문에. 이 함수도 그렇고, previewSubPhoto함수도..)
+       		//기존 Row 수 또한 1개 줄어야한다. (originalRow로 row수를 체크하기 때문에. 이 함수도 그렇고, previewSubPhoto함수도..)
        		var del_photoOwnNo=$('#subPhotosExplain'+(remove_index-1)).attr('photoownno'); //originalRow에서 지워야하기 때문에
        		delete originalRow[del_photoOwnNo];
        	}else{ //새로 추가된 행을 삭제한거라면
@@ -504,6 +509,7 @@
        	var blank_pattern = /^\s+|\s+$/g; //공백 정규식
        	var subject = document.getElementById("photo_subject").value; //제목
        	var a_line_review = document.getElementById("photo_a_line_review").value; //한줄평
+       	var orderObject = {}; //행의 순서를 보내기 위한 객체
        	
       	//제목이 입력되지 않았다면
        	if(!subject || subject.replace(blank_pattern, '')==""){
@@ -572,25 +578,26 @@
         	}
         }
        	
-       	if(sel_files.length>0){ //추가된 서브포토가 있다면
-       		//subPhotos 이미지만 업로드 가능하게 MIME 형식 검사
-            sel_files.forEach(function(f) {
-              if(!f.type.match("image.*")) {
-                alert("이미지만 업로드 가능합니다.");
-                return;
-              }
-            });
+       	if(Object.size(sel_files)>0){ //추가된 서브포토가 있다면
+          	//subPhotos 이미지만 업로드 가능하게 MIME 형식 검사
+       		for(key in sel_files){
+       			let file=sel_files[key];
+       			if(!file.type.match("image.*")) {
+                    alert("이미지만 업로드 가능합니다.");
+                    return;
+                  }
+       		}
        		
        		//subPhotos와 contents를 formData에 넣는다.
-            for(var i=0, len=sel_files.length; i<len; i++) {
+            /* for(var i=0, len=sel_files.length; i<len; i++) {
                 var file_name = "image_"+i; //해당 file의 parameter name
     			var content_name = "content_"+i; //사진에 대한 내용
                	
                 data.append(file_name, sel_files[i]);
     			data.append(content_name,contentArray[i]);
     			
-            }
-            data.append("length",sel_files.length-1); //몇개의 이미지가 있는지 넣어준다. (사진의 내용을 사용할 때도 같이 사용될것이다.)
+            } */
+            data.append("sel_files_length",Object.size(sel_files)); //몇개의 이미지가 있는지 넣어준다. (사진의 내용을 사용할 때도 같이 사용될것이다.)
        	}
 
 		//서브포토 업데이트 리스트가 있는지 검사
@@ -615,6 +622,22 @@
 			}
 		}
         
+		//순서 정렬 orderObject
+		$("#subPhotosTable tr td  label > textarea").each(function(i,item){//첫번째부터 차례대로 td안의 label에 textarea를 가져온다.
+	        /* var index = $(this).parent().parent().closest('tr').prevAll().length; //index값을 가져온다.
+	        $(this).attr('photoownno'); */
+	        $photoOwnNo=$(this).attr('photoownno');
+	       	if($photoOwnNo!='undefined'){ //기존행
+	       		orderObject[i]=$photoOwnNo
+	       	}else{ //새로운 행
+	       		//orderObject[i]=sel_files[];
+	       	}
+	        
+	        
+	        
+      	});
+		
+		
 		//ajax 통신 (jQuery를 이용하지 않고 바닐라 JavaScript로 한다.)
         var xhr = new XMLHttpRequest(); 
         xhr.open("POST","./photoBoardModify",false);
@@ -644,7 +667,7 @@
             console.log("Result : "+e.currentTarget.responseText);
           }
         }
-        xhr.send(data);
+        //xhr.send(data);
 
       }
       
@@ -770,15 +793,17 @@
   	return result;
     }
 	
-  	//업데이트 리스트에 해당 photoSubNo가 있는지 확인
-    function isContainUpdateList(photoSubNo){
-  	  for(var key in updateList){
-  		  if(key==photoSubNo) return true;
-  	  }
-  	  return false;
-    }
-  	
-  	
+  	/*
+  		객체가 키값을 가지고 있는지 확인
+  		@param obj : 키값이 있는지 확인 할 객체
+  		@param key : 확인할 키값
+  	*/
+  	function isContainObject(obj,key){
+  		if(obj.hasOwnProperty(key)){
+  			return true;
+  		}
+  		return false;
+  	}
   	
    /*배열순서 변경
   	@param arr : 변경될 배열
@@ -812,17 +837,16 @@
         var index = $(this).parent().parent().closest('tr').prevAll().length; //index값을 가져온다.
         $(this).attr('id','subPhotosExplain'+index);
         $(this).attr('name','subPhotosExplain'+index);
-        $(this).attr('photoownno',index);
+        //$(this).attr('photoownno',index);
       });
 	  
-	 // console.log('trNumBefore',trNumBefore);
 	  if(photosubno_before=='undefined'){ //새로운 행일 때
 		arrayFirstElemChanger(sel_files,trNumBefore);
 		//objectOrderPlus(updateList);
-	  }else{ //기존행 일때
+		/* }else{ //기존행 일때
 		arrayFirstElemChanger(updateList,trNumBefore);
-		objectOrderPlus(sel_files);
-	  }
+		//objectOrderPlus(sel_files);*/
+	  } 
 		  
 	  
   }
@@ -865,14 +889,15 @@
 	if(photosubno_before=='undefined' && photosubno_after=='undefined'){ //순서변경 후 아래와 위 행 모두 새로 추가된 행일 때
 		objectValueInterChange(sel_files,trNumBefore,trNumAfter);
 	}else if(photosubno_before!='undefined' && photosubno_after!='undefined'){//순서변경 후 아래와 위 행 모두 기존 행일 때
-		objectValueInterChange(updateList,trNumBefore,trNumAfter);
+		//objectValueInterChange(updateList,trNumBefore,trNumAfter);
 	}else if(photosubno_before=='undefined' && photosubno_after!='undefined'){//순서변경 후 아래의 행이 기존 행일 때
-		objectPropertyChange(updateList,trNumBefore,trNumAfter);
+		//objectPropertyChange(updateList,trNumBefore,trNumAfter);
 		objectPropertyChange(sel_files,trNumAfter,trNumBefore);
 	}else if(photosubno_before!='undefined' && photosubno_after=='undefined'){//순서변경 후 아래가 새로 추가된 행
-		objectPropertyChange(updateList,trNumAfter,trNumBefore);
+		//objectPropertyChange(updateList,trNumAfter,trNumBefore);
 		objectPropertyChange(sel_files,trNumBefore,trNumAfter);
 	}
+	
   }
   
   //아래로 이동
@@ -916,14 +941,15 @@
 	if(photosubno_before=='undefined' && photosubno_after=='undefined'){ //순서변경 후 아래와 위 행 모두 새로 추가된 행일 때
 		objectValueInterChange(sel_files,trNumBefore,trNumAfter);
 	}else if(photosubno_before!='undefined' && photosubno_after!='undefined'){//순서변경 후 아래와 위 행 모두 기존 행일 때
-		objectValueInterChange(updateList,trNumBefore,trNumAfter);
+		//objectValueInterChange(updateList,trNumBefore,trNumAfter);
 	}else if(photosubno_before=='undefined' && photosubno_after!='undefined'){//순서변경 후 아래의 행이 기존 행일 때
-		objectPropertyChange(updateList,trNumBefore,trNumAfter);
+		//objectPropertyChange(updateList,trNumBefore,trNumAfter);
 		objectPropertyChange(sel_files,trNumAfter,trNumBefore);
 	}else if(photosubno_before!='undefined' && photosubno_after=='undefined'){//순서변경 후 아래가 새로 추가된 행
-		objectPropertyChange(updateList,trNumAfter,trNumBefore);
+		//objectPropertyChange(updateList,trNumAfter,trNumBefore);
 		objectPropertyChange(sel_files,trNumBefore,trNumAfter);
 	}
+	
   }
   
   //맨아래로 이동
@@ -947,10 +973,9 @@
         var index = $(this).parent().parent().closest('tr').prevAll().length; //index값을 가져온다.
         $(this).attr('id','subPhotosExplain'+index);
         $(this).attr('name','subPhotosExplain'+index);
-        $(this).attr('photoownno',index);
+        //$(this).attr('photoownno',index);
       });
       let trNumAfter = $tr.closest('tr').prevAll().length; //순서 바꾼 후 index, 즉 맨 마지막 번호
-	  console.log('trNumBefore',trNumBefore,'trNumAfter',trNumAfter);
 	  if(photosubno_before=='undefined') //새로운 행 일때
 		  arrayLastElemChanger(sel_files,trNumBefore,trNumAfter); 
 	  else //기존 행 일때
@@ -1055,6 +1080,24 @@
   		}
   	} 
   }
+  	
+  /**/
+  function objKeyMinus(obj, start){
+ 	for(let i=start+1; i<Object.size(obj); i++){
+ 		if(obj.hasOwnProperty(i)){ //i가 있을 경우에만
+ 			if(nextElem!='undefined'){
+  				let temp = nextElem;
+  				nextElem=obj[i+1]
+  				obj[i+1]=temp;
+  			}else{
+  				var nextElem=obj[i+1];
+  				obj[i+1]=obj[i];
+  			}	
+ 		}
+ 	}
+  }
+  	
+  	
   
   /*
 	객체의 프로퍼티명을 변경 (값은 그대로)
