@@ -572,7 +572,6 @@
         		alert('내용에 공백만 입력되었습니다 ');
         		return ;
         	}
-        	
         	if(photoSubNo == 'undefined'){ //photoSubNo가 정의되어있지 않다면 추가된 내용이다.
         		contentArray.push(content);	
         	}
@@ -587,16 +586,6 @@
                     return;
                   }
        		}
-       		
-       		//subPhotos와 contents를 formData에 넣는다.
-            /* for(var i=0, len=sel_files.length; i<len; i++) {
-                var file_name = "image_"+i; //해당 file의 parameter name
-    			var content_name = "content_"+i; //사진에 대한 내용
-               	
-                data.append(file_name, sel_files[i]);
-    			data.append(content_name,contentArray[i]);
-    			
-            } */
             data.append("sel_files_length",Object.size(sel_files)); //몇개의 이미지가 있는지 넣어준다. (사진의 내용을 사용할 때도 같이 사용될것이다.)
        	}
 
@@ -621,27 +610,30 @@
 				data.append("delList_"+i, delList[i]);
 			}
 		}
-        
+		
+		if(Object.size(sel_files)>0){ //새로운 행이 하나라도 추가가됬다면
+			var selFilesKeyList = [];
+        	for(key in sel_files){
+        		selFilesKeyList.push(key);
+        	}
+        }
 		//순서 정렬 orderObject
 		$("#subPhotosTable tr td  label > textarea").each(function(i,item){//첫번째부터 차례대로 td안의 label에 textarea를 가져온다.
-	        /* var index = $(this).parent().parent().closest('tr').prevAll().length; //index값을 가져온다.
-	        $(this).attr('photoownno'); */
 	        $photoOwnNo=$(this).attr('photoownno');
+	        $photoSubNo=$(this).attr('photosubno');
 	       	if($photoOwnNo!='undefined'){ //기존행
-	       		orderObject[i]=$photoOwnNo
+	       		orderObject[i]=$photoSubNo;
 	       	}else{ //새로운 행
 	       		//orderObject[i]=sel_files[];
+	       		orderObject["new"+i]=sel_files[selFilesKeyList.shift()];
 	       	}
-	        
-	        
-	        
       	});
-		
+		data.append("orderObject"+orderObject);
+		console.log(orderObject);
 		
 		//ajax 통신 (jQuery를 이용하지 않고 바닐라 JavaScript로 한다.)
         var xhr = new XMLHttpRequest(); 
         xhr.open("POST","./photoBoardModify",false);
-        //xhr.responseType = 'application/x-www-form-urlencoded; charset=UTF-8;';
         xhr.onreadystatechange = function(e){ //통신이 끝났을 때 호출된다.
           if(xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 201)){ //readyState(통신상태) 4 == 완료 status(통신결과) 200 == 성공
            	console.log(e.currentTarget.responseText);
@@ -667,9 +659,9 @@
             console.log("Result : "+e.currentTarget.responseText);
           }
         }
-        //xhr.send(data);
+        xhr.send(data);
 
-      }
+      } //end of submitAction
       
       var tag = {}; //태그값들이 담길 Object
       var tag_counter = 0;
