@@ -628,7 +628,7 @@
 	       		orderObject["new"+i]=sel_files[selFilesKeyList.shift()];
 	       	}
       	});
-		data.append("orderObject"+orderObject);
+		data.append("orderObject",JSON.stringify(orderObject));
 		console.log(orderObject);
 		
 		//ajax 통신 (jQuery를 이용하지 않고 바닐라 JavaScript로 한다.)
@@ -637,23 +637,24 @@
         xhr.onreadystatechange = function(e){ //통신이 끝났을 때 호출된다.
           if(xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 201)){ //readyState(통신상태) 4 == 완료 status(통신결과) 200 == 성공
            	console.log(e.currentTarget.responseText);
-          	var jsonResponse = JSON.parse(e.currentTarget.responseText); //넘어온 값 JSON으로 파싱
+         	
+          	/* var jsonResponse = JSON.parse(e.currentTarget.responseText); //넘어온 값 JSON으로 파싱
         	if(jsonResponse.result=='success'){
         		alert('게시글이 성공적으로 등록되었습니다.');
            	}else if(jsonResponse.result=='data_omission'){
            		alert('데이터 누락 발생. 관리자에게 문의해주세요.');
-           	}
+           	} */
           	
           	var serverType="<%=serverType%>"; //web.xml에 설정된 서버타입을 가져온다.
 			/*서버타입에 맞게 경로설정*/
-          	if(serverType==="dev"){ //서버타입이 개발이라면
+          	/* if(serverType==="dev"){ //서버타입이 개발이라면
 				location.href="http://localhost:8090/photoProject/main.pro";
 			}else if(serverType==="real"){//서버타입이 실서버라면
 				location.href="http://218.149.135.58:8080/photoProject/main.pro"; 
 			}else if(serverType==="comp"){ //서버타입이 회사라면
 				location.href="http://localhost:8012/photoProject/main.pro";
-			}
-			
+			} */
+          	
           }else{
         	alert('에러발생. 관리자에게 문의해주세요.');
             console.log("Result : "+e.currentTarget.responseText);
