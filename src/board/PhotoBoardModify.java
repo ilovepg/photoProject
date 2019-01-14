@@ -2,6 +2,8 @@ package board;
 
 import java.io.IOException;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -9,6 +11,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.gson.internal.LinkedTreeMap;
 import com.oreilly.servlet.MultipartRequest;
 import com.oreilly.servlet.multipart.DefaultFileRenamePolicy;
 
@@ -29,6 +32,8 @@ public class PhotoBoardModify extends HttpServlet {
     	int fileMaxSize = 1024*1024*100; //100MB 사이즈까지 업로드 가능
     	String encoding = "UTF-8"; 
     	System.out.println("directory:"+directory);
+    	Map<String,Object> stringParamMap = new LinkedTreeMap<String,Object>(); //파일이 아닌 다른 키가 들어있는 맵
+    	Map<String,Object> fileParamMap = new LinkedTreeMap<String,Object>(); //파일 키값
     	
     	MultipartRequest multipartRequest = 
 				new MultipartRequest(request, directory, fileMaxSize, encoding,
@@ -43,7 +48,7 @@ public class PhotoBoardModify extends HttpServlet {
     	while(fileNames.hasMoreElements()) {
     		String fileParam = (String)fileNames.nextElement();
     		String fileName = multipartRequest.getOriginalFileName(fileParam);   //사용자가 업로드한 파일의 이름을  넣어준다.
-    		System.out.println("param:"+fileParam+" value:"+fileName);
+    		System.out.println("file_param:"+fileParam+" value:"+fileName);
     	}
     	
     	

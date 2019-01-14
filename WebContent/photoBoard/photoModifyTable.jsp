@@ -584,7 +584,8 @@
        			if(!file.type.match("image.*")) {
                     alert("이미지만 업로드 가능합니다.");
                     return;
-                  }
+                }
+       			data.append("newFile_"+key,sel_files[key]);
        		}
             data.append("sel_files_length",Object.size(sel_files)); //몇개의 이미지가 있는지 넣어준다. (사진의 내용을 사용할 때도 같이 사용될것이다.)
        	}
@@ -617,6 +618,7 @@
         		selFilesKeyList.push(key);
         	}
         }
+		
 		//순서 정렬 orderObject
 		$("#subPhotosTable tr td  label > textarea").each(function(i,item){//첫번째부터 차례대로 td안의 label에 textarea를 가져온다.
 	        $photoOwnNo=$(this).attr('photoownno');
