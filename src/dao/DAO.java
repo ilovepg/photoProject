@@ -404,22 +404,6 @@ public class DAO {
 		String query = "INSERT INTO photo_board_thumb (photo_boardNo,photo_subNo,photo_thumbType,photo_thumbName,photo_thumbUsage) VALUES (?,?,?,?,?)";
 		System.out.println("서브의 LastID:"+subImgNo);
 		try {
-			/*ps=conn.prepareStatement(query);
-			ps.setInt(1, last_insert_id); //photo_boardNo 입력
-			ps.setInt(2, subImgNo); //photo_subNo 입력
-			if(typeFlag.equals("sub")) {
-			//서브 이미지 썸네일 DB저장
-				ps.setString(3, typeFlag); //thumbType입력 (main, sub)
-			}else if(typeFlag.equals("main")) {
-				//메인 이미지 썸네일 DB저장
-				ps.setString(3, typeFlag); //thumbType입력 (main, sub)
-			}
-			ps.setString(4, thumbImageName); //thumbImageName입력 (썸네일 이미지 파일명)
-			ps.setString(5, photo_thumbUsage); //photo_thumbUsage 입력(이미지가 어느 페이지에쓰일지)
-			int insertResult = ps.executeUpdate(); //결과값 리턴 (1이라면 성공, 0이라면 실패)
-			if(insertResult!=1) {
-				result="데이터 누락";
-			}*/
 			ps=conn.prepareStatement(query);
 			ps.setInt(1, last_insert_id); //photo_boardNo 입력
 			ps.setInt(2, subImgNo); //photo_subNo 입력
@@ -551,6 +535,85 @@ public class DAO {
 		}
 		return null;
 		
+	}
+	
+	/*
+	 * 수정 페이지에서 지워진 서브포토 DB에서 삭제하기
+	 * @param photoSubNo : 지워질 서브포토의 DB고유번호
+	 * */
+	public String deleteSubPhoto(int photoSubNo) {
+		String result="성공";
+		PreparedStatement ps = null;
+		String query = "DELETE FROM photo_board_sub WHERE photo_subNo=?";
+		
+		try {
+			ps=conn.prepareStatement(query);
+			ps.setInt(1, photoSubNo); //photo_boardNo 입력
+			int deleteResult = ps.executeUpdate(); //SQL 문장 실행 후, 변경된 row 수를 int type 으로 리턴합니다.
+			if(deleteResult==0) {
+				result="DB오류_deleteSubPhoto";
+			}
+		}catch (SQLException e) {
+			e.printStackTrace();
+			result="DB오류_deleteSubPhoto";
+			return result;
+		}
+		
+		return result;
+		
+	}
+	
+	/*
+	 * DB의 기존 서브포토들의 순서를 바꾸는 메소드
+	 * @param photo_ownNo : 해당 게시글에서의 서브포토의 순서
+	 * @param photo_subNo : 해당 게시글에서의 서브포토 DB 고유값
+	 * */
+	public String updatePhotosOrder(int photo_ownNo,int photo_subNo) {
+		String result="성공";
+		PreparedStatement ps = null;
+		String query = "UPDATE photo_board_sub SET photo_ownNo=? WHERE photo_subNo=?;";
+		
+		try {
+			ps=conn.prepareStatement(query);
+			ps.setInt(1, photo_ownNo); //photo_boardNo 입력
+			ps.setInt(2, photo_subNo); //photo_boardNo 입력
+			int updateResult = ps.executeUpdate(); //SQL 문장 실행 후, 변경된 row 수를 int type 으로 리턴합니다.
+			if(updateResult==0) {
+				result="DB오류_updatePhotosOrder";
+			}
+		}catch (SQLException e) {
+			e.printStackTrace();
+			result="DB오류_updatePhotosOrder";
+			return result;
+		}
+		return result;
+	}
+	
+	/*
+	 * DB의 기존 서브포토 내용들을 바꾸는 메소드
+	 * @param photo_subNo:DB고유값
+	 * @param contents:바꿀 내용
+	 * */
+	public String updateSubPhotoContent(int photo_subNo, String contents) {
+		String result="성공";
+		PreparedStatement ps = null;
+		String query = "UPDATE photo_board_sub SET photo_content=? WHERE photo_subNo=?;";
+		
+		try {
+			ps=conn.prepareStatement(query);
+			ps.setString(1, contents); //photo_boardNo 입력
+			ps.setInt(2, photo_subNo); //photo_boardNo 입력
+			int updateResult = ps.executeUpdate(); //SQL 문장 실행 후, 변경된 row 수를 int type 으로 리턴합니다.
+			if(updateResult==0) {
+				result="DB오류_updateSubPhotoContent";
+			}
+		}catch (SQLException e) {
+			e.printStackTrace();
+			result="DB오류_updateSubPhotoContent";
+			return result;
+		}
+		
+		return result;
 	}
 	
 	/*DAO 사용이 끝나면 Conn을 닫아주기 위한 메소드*/

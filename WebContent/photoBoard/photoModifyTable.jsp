@@ -573,9 +573,11 @@
         		return ;
         	}
         	if(photoSubNo == 'undefined'){ //photoSubNo가 정의되어있지 않다면 추가된 내용이다.
-        		contentArray.push(content);	
+        		contentArray.push(content);
+        		data.append("newFileContents_"+i,content);
         	}
         }
+       	
        	
        	if(Object.size(sel_files)>0){ //추가된 서브포토가 있다면
           	//subPhotos 이미지만 업로드 가능하게 MIME 형식 검사
@@ -600,6 +602,7 @@
 			for(let key in updateList){
 				data.append("updateSubPhoto"+key,updateList[key]);	
 			}
+			data.append("updateListSize",updateListSize);
 		}
 		
 		if(updateContentListSize>0){
@@ -607,9 +610,10 @@
 		}
 		
 		if(delListSize>0){
-			for(var i=0; i<delListSize.length; i++){
+			for(var i=0; i<delListSize; i++){
 				data.append("delList_"+i, delList[i]);
 			}
+			data.append("delListSize", delListSize); //서브포토 제거리스트 크기도 보내준다.
 		}
 		
 		if(Object.size(sel_files)>0){ //새로운 행이 하나라도 추가가됬다면
