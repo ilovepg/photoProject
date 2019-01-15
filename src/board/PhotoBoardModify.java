@@ -141,7 +141,7 @@ public class PhotoBoardModify extends HttpServlet {
 			String fileRealName = multipartRequest.getFilesystemName(fileParam); //서버에 업로드된 파일의 이름
 			tempMap = new HashMap<String,Object>(); 
     		if(fileParam.contains("newFile_")) { //새로운 파일
-    			//게시글 번호 필요함.ㅎ
+    			//게시글 번호 필요함.
     			addFileParamMap = new HashMap<String,Object>(); //파일 키값
     		}else { //기존 파일
     	    	String photo_subNo = fileParam.replaceFirst("updateSubPhoto", ""); //오리지널 파일 변경을 위한 DB고유값
