@@ -24,6 +24,8 @@ public class ExceptionClass {
 	 * @Param comment : 보낼 내용
 	 * */
 	public void javaScriptToClient(HttpServletResponse response,String comment) throws IOException {
+		response.setCharacterEncoding("UTF-8"); 
+		response.setContentType("text/html; charset=UTF-8");
 		PrintWriter out = response.getWriter();
 		out.println("<script>");
 		out.println("alert('"+comment+"');");

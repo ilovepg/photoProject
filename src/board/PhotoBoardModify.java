@@ -55,7 +55,8 @@ public class PhotoBoardModify extends HttpServlet {
     	String encoding = "UTF-8"; 
     	System.out.println("directory:"+directory);
     	Map<String,Object> stringParamMap = new LinkedTreeMap<String,Object>(); //파일이 아닌 다른 키가 들어있는 맵
-    	Map<String,Object> fileParamMap = new LinkedTreeMap<String,Object>(); //파일 키값
+    	Map<String,Object> originalFileParamMap = new HashMap<String,Object>(); //파일 키값
+    	Map<String,Object> addFileParamMap = new HashMap<String,Object>(); //파일 키값
     	
     	MultipartRequest multipartRequest = 
 				new MultipartRequest(request, directory, fileMaxSize, encoding,
@@ -67,12 +68,12 @@ public class PhotoBoardModify extends HttpServlet {
     		System.out.println("param:"+param+" value:"+multipartRequest.getParameter(param));
     		stringParamMap.put(param, multipartRequest.getParameter(param)); //맵에 통합적으로 넣는다.
     	}
-    	Enumeration fileNames = multipartRequest.getFileNames();
+    	/*Enumeration fileNames = multipartRequest.getFileNames();
     	while(fileNames.hasMoreElements()) {
     		String fileParam = (String)fileNames.nextElement();
     		String fileName = multipartRequest.getOriginalFileName(fileParam);   //사용자가 업로드한 파일의 이름을  넣어준다.
     		System.out.println("file_param:"+fileParam+" value:"+fileName);
-    	}
+    	}*/
     	
     	//1. 삭제할 데이터 삭제 (delListSize가 있는지 검사한다.)
     	if(stringParamMap.containsKey("delListSize")) {
@@ -129,8 +130,19 @@ public class PhotoBoardModify extends HttpServlet {
     				out.flush();
     			}
     		}
-    		
-    		
+    	}
+    	
+    	/*수정된 기존 서브포토파일과 새로추가된 파일 분리*/
+    	Enumeration fileNames = multipartRequest.getFileNames();
+    	while(fileNames.hasMoreElements()) {
+    		String fileParam = (String)fileNames.nextElement();
+    		String fileName = multipartRequest.getOriginalFileName(fileParam);   //사용자가 업로드한 파일의 이름을  넣어준다.
+			String fileRealName = multipartRequest.getFilesystemName(fileParam); //서버에 업로드된 파일의 이름
+    	}
+    	
+    	//4. 기존에 있던 서브포토 파일 업로드
+    	if(stringParamMap.containsKey("updateListSize")) {
+    		//String fileUserName=stringParamMap.get("");
     	}
     	
     	//5. 새로 추가된 파일 업로드 및  DB에 추가하기
@@ -152,7 +164,7 @@ public class PhotoBoardModify extends HttpServlet {
   		Map<String,Object> map = new HashMap<String,Object>();
   		return g.fromJson(json, map.getClass());
   	}
-	
+  	
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		doGet(request, response);
 	}
