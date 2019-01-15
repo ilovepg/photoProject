@@ -143,32 +143,6 @@ public class PhotoBoardModify extends HttpServlet {
     		}
     	}
     	
-    	/*수정된 기존 서브포토파일과 새로추가된 파일 분리*/
-    	Enumeration fileNames = multipartRequest.getFileNames();
-    	while(fileNames.hasMoreElements()) {
-    		String fileParam = (String)fileNames.nextElement();
-    		String fileName = multipartRequest.getOriginalFileName(fileParam);   //사용자가 업로드한 파일의 이름을  넣어준다.
-			String fileRealName = multipartRequest.getFilesystemName(fileParam); //서버에 업로드된 파일의 이름
-    	}
-    	
-    	//4. 기존에 있던 서브포토 파일 업로드
-    	if(stringParamMap.containsKey("updateListSize")) {
-    		//String fileUserName=stringParamMap.get("");
-    	}
-    	
-    	/*수정된 기존 서브포토파일과 새로추가된 파일 분리*/
-    	Enumeration fileNames = multipartRequest.getFileNames();
-    	while(fileNames.hasMoreElements()) {
-    		String fileParam = (String)fileNames.nextElement();
-    		String fileName = multipartRequest.getOriginalFileName(fileParam);   //사용자가 업로드한 파일의 이름을  넣어준다.
-			String fileRealName = multipartRequest.getFilesystemName(fileParam); //서버에 업로드된 파일의 이름
-    	}
-    	
-    	//4. 기존에 있던 서브포토 파일 업로드
-    	if(stringParamMap.containsKey("updateListSize")) {
-    		//String fileUserName=stringParamMap.get("");
-    	}
-    	
     	/*수정된 기존 서브포토파일명과 새로추가된 파일명 분리 후 썸네일명과 함께 DB에 삽입ㅎ*/
     	Map<String,Object> tempMap=null; //임시 저장맵
     	Enumeration fileNames = multipartRequest.getFileNames();
