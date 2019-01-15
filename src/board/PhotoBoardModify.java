@@ -133,11 +133,23 @@ public class PhotoBoardModify extends HttpServlet {
     	}
     	
     	/*수정된 기존 서브포토파일과 새로추가된 파일 분리*/
+    	Map tempMap=null; //임시 저장맵
     	Enumeration fileNames = multipartRequest.getFileNames();
     	while(fileNames.hasMoreElements()) {
     		String fileParam = (String)fileNames.nextElement();
     		String fileName = multipartRequest.getOriginalFileName(fileParam);   //사용자가 업로드한 파일의 이름을  넣어준다.
 			String fileRealName = multipartRequest.getFilesystemName(fileParam); //서버에 업로드된 파일의 이름
+			tempMap = new HashMap<String,Object>(); 
+    		if(fileParam.contains("newFile_")) { //새로운 파일
+    			//게시글 번호 필요함.
+    			addFileParamMap = new HashMap<String,Object>(); //파일 키값
+    		}else { //기존 파일
+    	    	String photo_subNo = fileParam.replaceFirst("updateSubPhoto", ""); //오리지널 파일 변경을 위한 DB고유값
+    	    	tempMap.put("userUploadName", fileName); //사용자가 업로드한 이름
+    	    	tempMap.put("serverUploadName", fileRealName);//서버에 업로드된 이름
+    	    	originalFileParamMap.put(photo_subNo, tempMap);
+    		}
+    		
     	}
     	
     	//4. 기존에 있던 서브포토 파일 업로드
