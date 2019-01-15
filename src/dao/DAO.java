@@ -616,6 +616,60 @@ public class DAO {
 		return result;
 	}
 	
+	/*
+	 * DB의 기존 서브포토 파일명을 바꾸는 메소드
+	 * @param photo_subNo:DB고유값
+	 * @param fileName:바꿀 파일명
+	 * */
+	public String updateSubPhotoFileName(int photo_subNo, String fileName) {
+		String result="성공";
+		PreparedStatement ps = null;
+		String query = "UPDATE photo_board_sub SET photo_sub=? WHERE photo_subNo=?;";
+		
+		try {
+			ps=conn.prepareStatement(query);
+			ps.setString(1, fileName); //photo_boardNo 입력
+			ps.setInt(2, photo_subNo); //photo_boardNo 입력
+			int updateResult = ps.executeUpdate(); //SQL 문장 실행 후, 변경된 row 수를 int type 으로 리턴합니다.
+			if(updateResult==0) {
+				result="DB오류_updateSubPhotoContent";
+			}
+		}catch (SQLException e) {
+			e.printStackTrace();
+			result="DB오류_updateSubPhotoContent";
+			return result;
+		}
+		
+		return result;
+	}
+	
+	/*
+	 * DB의 기존 서브포토 썸네일명을 바꾸는 메소드
+	 * @param photo_subNo:DB고유값
+	 * @param thumbName:바꿀 썸네일명
+	 * */
+	public String updateSubPhotoThumbName(int photo_subNo, String thumbName) {
+		String result="성공";
+		PreparedStatement ps = null;
+		String query = "UPDATE photo_board_sub SET photo_sub=? WHERE photo_subNo=?;";
+		
+		try {
+			ps=conn.prepareStatement(query);
+			ps.setString(1, thumbName); //photo_boardNo 입력
+			ps.setInt(2, photo_subNo); //photo_boardNo 입력
+			int updateResult = ps.executeUpdate(); //SQL 문장 실행 후, 변경된 row 수를 int type 으로 리턴합니다.
+			if(updateResult==0) {
+				result="DB오류_updateSubPhotoContent";
+			}
+		}catch (SQLException e) {
+			e.printStackTrace();
+			result="DB오류_updateSubPhotoContent";
+			return result;
+		}
+		
+		return result;
+	}
+	
 	/*DAO 사용이 끝나면 Conn을 닫아주기 위한 메소드*/
 	public void closeConn() {
 		try {

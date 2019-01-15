@@ -25,6 +25,7 @@ import com.oreilly.servlet.MultipartRequest;
 import com.oreilly.servlet.multipart.DefaultFileRenamePolicy;
 
 import dao.DAO;
+import util.UtilClass;
 
 /*
  * 포토 게시판에서 메인이미지, 서브이미지, 서브이미지의 내용, 제목을 받아서 DB에 수정하는 서블릿
@@ -94,11 +95,22 @@ public class PhotoBoardModify extends HttpServlet {
     	if(stringParamMap.containsKey("orderObject")) {
     		//GSON을 사용하여 객체를 JSON으로 변환
 			Map<String,Object> orderMap = jsonfnc(stringParamMap.get("orderObject").toString()); //json 형태의 String값을 Map으로 변환해준다.
-			int sel_files_length=0; //새로 추가된 서브포토의 개수
-			if(stringParamMap.containsKey("sel_files_length")) { 
-				sel_files_length=Integer.parseInt(stringParamMap.get("sel_files_length").toString());
+			Set set = orderMap.keySet();
+			Iterator<Set> iterator = set.iterator();
+			while(iterator.hasNext()) {
+				String key=String.valueOf(iterator.next());
+				if(key.contains("new")) continue; //Key에 new가 들어있다면 바로 다른 것으로 넘어간다.
+				int photo_ownNo=Integer.parseInt(key);
+				int photo_subNo=Integer.parseInt(orderMap.get(key).toString()); //파일 순서에 따른 DB고유값
+				String result=dao.updatePhotosOrder(photo_ownNo, photo_subNo);
+				if(!result.equals("성공")) {
+    				System.out.println("오류발생:"+result);
+    				resultJson.put("result", result);
+    				out.print(resultJson);
+    				out.flush();
+    			}
 			}
-			int orderMapSize=orderMap.size()-sel_files_length; //기존에 있는 파일만 순서를 바꿔주기 위해서 새로추가된 파일개수만큼 빼준다.
+			/*int orderMapSize=orderMap.size()-sel_files_length; //기존에 있는 파일만 순서를 바꿔주기 위해서 새로추가된 파일개수만큼 빼준다.
 			for(int i=0; i<orderMapSize; i++) {
 				int photo_ownNo=i;//파일순서
 				String orderMapKey = String.valueOf(photo_ownNo);
@@ -110,14 +122,13 @@ public class PhotoBoardModify extends HttpServlet {
     				out.print(resultJson);
     				out.flush();
     			}
-			}
+			}*/
     	}
     	
     	//3. 기존에 있던 서브포토 내용 수정
     	if(stringParamMap.containsKey("updateSubPhotoContent")) {
     		Map<String,Object>updateSubPhotoContentMap = jsonfnc(stringParamMap.get("updateSubPhotoContent").toString());//json 형태의 String값을 Map으로 변환해준다.
-    		//updateSubPhotoContentMap의 키값은 photo_subNo(DB고유값)
-    		Set set = updateSubPhotoContentMap.keySet();
+    		Set set = updateSubPhotoContentMap.keySet();//updateSubPhotoContentMap의 키값은 photo_subNo(DB고유값)
     		Iterator<Set> iterator = set.iterator();
     		while(iterator.hasNext()) {
     			String photo_subNo=String.valueOf(iterator.next()); //DB고유번호
@@ -132,8 +143,8 @@ public class PhotoBoardModify extends HttpServlet {
     		}
     	}
     	
-    	/*수정된 기존 서브포토파일과 새로추가된 파일 분리*/
-    	Map tempMap=null; //임시 저장맵
+    	/*수정된 기존 서브포토파일명과 새로추가된 파일명 분리 후 썸네일명과 함께 DB에 삽입*/
+    	Map<String,Object> tempMap=null; //임시 저장맵
     	Enumeration fileNames = multipartRequest.getFileNames();
     	while(fileNames.hasMoreElements()) {
     		String fileParam = (String)fileNames.nextElement();
@@ -141,31 +152,38 @@ public class PhotoBoardModify extends HttpServlet {
 			String fileRealName = multipartRequest.getFilesystemName(fileParam); //서버에 업로드된 파일의 이름
 			tempMap = new HashMap<String,Object>(); 
     		if(fileParam.contains("newFile_")) { //새로운 파일
-    			//게시글 번호 필요함.ㅇ
-    			addFileParamMap = new HashMap<String,Object>(); //파일 키값
+    			//게시글 번호 필요함.
+    			int photo_boardNo = Integer.parseInt(stringParamMap.get("photo_boardNo").toString());
+    			String photo_ownNo = fileParam.replaceAll("newFile_", ""); //newFile_을 없애면 ownNo만 남는다.
+    			tempMap.put("userUploadName", fileName); //사용자가 업로드한 이름
+    	    	tempMap.put("serverUploadName", fileRealName);//서버에 업로드된 이름
+    	    	String thumbName=UtilClass.thumbImageCreate(360,225,directory,fileRealName); //썸네일 만들기
+    	    	tempMap.put("photoView_SubThumbImage",thumbName); //썸네일 이름을 맵에 넣어준다.
+    			addFileParamMap.put(photo_ownNo, tempMap); //파일 키값
+    			addFileParamMap.put("photo_boardNo", photo_boardNo); //게시글 고유 번호를 넣어준다. (한번만 넣는 방법을 생각해보자)
+    			
     		}else { //기존 파일
     	    	String photo_subNo = fileParam.replaceFirst("updateSubPhoto", ""); //오리지널 파일 변경을 위한 DB고유값
     	    	tempMap.put("userUploadName", fileName); //사용자가 업로드한 이름
     	    	tempMap.put("serverUploadName", fileRealName);//서버에 업로드된 이름
+    	    	String thumbName=UtilClass.thumbImageCreate(360,225,directory,fileRealName); //썸네일 만들기
+    	    	tempMap.put("photoView_SubThumbImage",thumbName);//썸네일 이름을 맵에 넣어준다.
     	    	originalFileParamMap.put(photo_subNo, tempMap);
+    	    	//TODO : 기존파일 지우는 로직도 만들어서 해야함.
+    	    	String result=dao.updateSubPhotoFileName(Integer.parseInt(photo_subNo), fileRealName); //DB에 기존 서브포토의 새로 업로드된 파일명을 넣어준다.
+    	    	if(!result.equals("성공")) {
+    				System.out.println("오류발생:"+result);
+    				resultJson.put("result", result);
+    				out.print(resultJson);
+    				out.flush();
+    				return ;
+    			}
+    	    	
     		}
     		
     	}
+    	System.out.println("addFileParamMap:"+addFileParamMap+"originalFileParamMap:"+originalFileParamMap);
     	
-    	//4. 기존에 있던 서브포토 파일 업로드
-    	if(stringParamMap.containsKey("updateListSize")) {
-    		//String fileUserName=stringParamMap.get("");
-    	}
-    	
-    	//5. 새로 추가된 파일 업로드 및  DB에 추가하기
-    	if(stringParamMap.containsKey("sel_files_length")) {
-    		
-    	}
-    	
-    }
-    
-    //실제로 파일을 업로드하는 메소드
-    private void uploadFile() {
     	
     }
     

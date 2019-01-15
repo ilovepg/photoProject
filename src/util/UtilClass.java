@@ -12,6 +12,7 @@ import java.security.PublicKey;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.Map;
 import java.util.Random;
+import java.util.UUID;
 
 import javax.crypto.Cipher;
 import javax.servlet.http.HttpServletRequest;
@@ -204,6 +205,36 @@ public class UtilClass {
 			}
     	} //end of For
     	
+    }
+    
+    /*
+	 * 포토게시글에 글을 수정할 때 썸네일 이미지를 만드는 메소드
+	 * @param width : 썸네일 이미지 width
+	 * @param height : 썸네일 이미지 height
+	 * @param imageLocation : 원본 이미지 저장장소
+	 * @param serverUploadName : 원본이미지의 서버 업로드 이름
+	 * @return thumbName : 생성된 썸네일 이름 
+	 * */
+    public static String thumbImageCreate(int width, int height, String imageLocation,String serverUploadName) {
+    	String thumbName = getRandomString()+"_thumb.jpg";
+    	String originalFile = imageLocation+File.separator+serverUploadName;//원본사진(경로+파일명)
+    	String thumbNameWithPath = imageLocation+File.separator+thumbName; //썸네일(경로+파일명)
+    	int thumbWidth = width ;//썸네일 가로
+        int thumbHeight = height ;//썸네일 세로
+        
+        Image thumbnail = JimiUtils.getThumbnail(originalFile, thumbWidth, thumbHeight, Jimi.IN_MEMORY,false);// 썸네일 설정
+        try {
+			Jimi.putImage(thumbnail, thumbNameWithPath); //썸네일 생성
+		} catch (JimiException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	return thumbName;
+    }
+    
+	//UUID를 랜덤으로 생성하여 32자의 랜덤한 문자열을 반환합니다.
+    public static String getRandomString() {
+    	return UUID.randomUUID().toString().replaceAll("-", "");
     }
     
 	/*

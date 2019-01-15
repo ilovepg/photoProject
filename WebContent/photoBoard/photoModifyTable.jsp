@@ -195,11 +195,11 @@
 		var delList = []; //사용자가 지운 서브사진 리스트
 		var originalRow = {}; //추가된 것이 아니라 기존에 있던 로우
 		var rowOrderChange = {}; //순서가 변경된 행을 photoOwnNo를 키값으로 해서 순서가 변경될 때마다 삽입
-		
+		var photo_boardNo ;//게시글 고유번호
 		//페이지 로딩이 완료된 후 실행되어 수정 데이터들을 SET 시킨다.
 		window.onload = function (){
 			var modifyData = <%=json%>;
-			var photo_boardNo = modifyData.photo_boardNo; //게시글 고유번호
+			photo_boardNo = modifyData.photo_boardNo; //게시글 고유번호
 			var photo_subject = modifyData.photo_subject; //게시글 제목
 			var photo_a_line_review = modifyData.photo_a_line_review; //게시글 한줄평
 			var photo_writer = modifyData.photo_writer; //게시글 작성자
@@ -210,14 +210,14 @@
 			var photoBoard_main = modifyData.photo_main; //게시글 메인사진
 			original_subject = photo_subject;
 			original_review=photo_a_line_review;
-			/* console.log("photo_subject:"+photo_subject);
+			console.log("photo_subject:"+photo_subject);
 			console.log("photo_a_line_review:"+photo_a_line_review);
 			console.log("photo_writer:"+photo_writer);
 			console.log("photo_upload_date:"+photo_upload_date);
-			console.log("photoBoard_thumb:"+photoBoard_thumb);
+			console.log("photoBoard_thumb:"+photoBoard_thumb[0].photo_thumbNo);
 			console.log("photoBoard_tag:"+photoBoard_tag);
 			console.log("photoBoard_sub:"+photoBoard_sub); 
-			console.log("photoBoard_main:"+photoBoard_main);  */
+			console.log("photoBoard_main:"+photoBoard_main); 
 			boardBasicInfoSet(photo_subject,photo_a_line_review,photo_writer,photo_upload_date,photoBoard_tag);
 			boardPhotoInfoSet(photoBoard_main,photoBoard_sub,photo_boardNo);
 		}
@@ -625,18 +625,17 @@
 		
 		//순서 정렬 orderObject
 		$("#subPhotosTable tr td  label > textarea").each(function(i,item){//첫번째부터 차례대로 td안의 label에 textarea를 가져온다.
-	        $photoOwnNo=$(this).attr('photoownno');
-	        $photoSubNo=$(this).attr('photosubno');
-	       	if($photoOwnNo!='undefined'){ //기존행
+	        $photoOwnNo=$(this).attr('photoownno'); //게시글 내의 순서
+	        $photoSubNo=$(this).attr('photosubno'); //DB고유 번호
+	       	if($photoOwnNo!='undefined'){ //게시글 내의 순서가 없다면 기존행이다.
 	       		orderObject[i]=$photoSubNo;
 	       	}else{ //새로운 행
-	       		//orderObject[i]=sel_files[];
 	       		orderObject["new"+i]=sel_files[selFilesKeyList.shift()];
 	       	}
       	});
-		data.append("orderObject",JSON.stringify(orderObject));
-		console.log(orderObject);
-		
+		console.log("orderObject:",orderObject);
+		data.append("orderObject",JSON.stringify(orderObject)); //서브포토 순서를 넣어준다.
+		data.append("photo_boardNo",photo_boardNo); //게시글 고유번호를 넣어준다.		
 		//ajax 통신 (jQuery를 이용하지 않고 바닐라 JavaScript로 한다.)
         var xhr = new XMLHttpRequest(); 
         xhr.open("POST","./photoBoardModify",false);
@@ -838,16 +837,6 @@
         $(this).attr('name','subPhotosExplain'+index);
         //$(this).attr('photoownno',index);
       });
-	  
-	  if(photosubno_before=='undefined'){ //새로운 행일 때
-		arrayFirstElemChanger(sel_files,trNumBefore);
-		//objectOrderPlus(updateList);
-		/* }else{ //기존행 일때
-		arrayFirstElemChanger(updateList,trNumBefore);
-		//objectOrderPlus(sel_files);*/
-	  } 
-		  
-	  
   }
   //위로 이동
   function moveUp(object){
@@ -873,19 +862,19 @@
 	$subTextArea_after.attr("name","subPhotosExplain"+trNumBefore);
 	
 	//textArea photoownno 변경
-	var photoownno_before = $subTextArea_before.attr('photoownno'); //방금 변경한 Row의 컨텐츠 테이블 순서 (전)
+	/* var photoownno_before = $subTextArea_before.attr('photoownno'); //방금 변경한 Row의 컨텐츠 테이블 순서 (전)
 	var photoownno_after = $subTextArea_after.attr('photoownno'); //방금 변경한 Row의 컨텐츠 테이블 순서 (후)
 	$subTextArea_before.attr("photoownno",photoownno_after);  //photoownno 변경
-	$subTextArea_after.attr("photoownno",photoownno_before);
+	$subTextArea_after.attr("photoownno",photoownno_before); */
 	
 	//textArea photoSubNo로 새로 추가된 행인지 기존 행인지 판별
-	var photosubno_before=$('#subPhotosExplain'+trNumBefore).attr('photosubno');
-	var photosubno_after=$('#subPhotosExplain'+trNumAfter).attr('photosubno'); 
+	//var photosubno_before=$('#subPhotosExplain'+trNumBefore).attr('photosubno');
+	//var photosubno_after=$('#subPhotosExplain'+trNumAfter).attr('photosubno'); 
 	//var photosubno_before=$subTextArea_before.attr('photosubno');
 	//var photosubno_after=$subTextArea_after.attr('photosubno');
 	
 	//실제 파일 순서도 변경해줘야한다.
-	if(photosubno_before=='undefined' && photosubno_after=='undefined'){ //순서변경 후 아래와 위 행 모두 새로 추가된 행일 때
+	/* if(photosubno_before=='undefined' && photosubno_after=='undefined'){ //순서변경 후 아래와 위 행 모두 새로 추가된 행일 때
 		objectValueInterChange(sel_files,trNumBefore,trNumAfter);
 	}else if(photosubno_before!='undefined' && photosubno_after!='undefined'){//순서변경 후 아래와 위 행 모두 기존 행일 때
 		//objectValueInterChange(updateList,trNumBefore,trNumAfter);
@@ -895,7 +884,7 @@
 	}else if(photosubno_before!='undefined' && photosubno_after=='undefined'){//순서변경 후 아래가 새로 추가된 행
 		//objectPropertyChange(updateList,trNumAfter,trNumBefore);
 		objectPropertyChange(sel_files,trNumBefore,trNumAfter);
-	}
+	} */
 	
   }
   
@@ -923,21 +912,21 @@
 	$subTextArea_after.attr("name","subPhotosExplain"+trNumBefore);
 	
 	//textArea photoownno 변경
-	var photoownno_before = $subTextArea_before.attr('photoownno'); //방금 변경한 Row의 컨텐츠 테이블 순서 (전)
+	/* var photoownno_before = $subTextArea_before.attr('photoownno'); //방금 변경한 Row의 컨텐츠 테이블 순서 (전)
 	var photoownno_after = $subTextArea_after.attr('photoownno'); //방금 변경한 Row의 컨텐츠 테이블 순서 (후)
 	$subTextArea_before.attr("photoownno",photoownno_after);  //photoownno 변경
-	$subTextArea_after.attr("photoownno",photoownno_before);
+	$subTextArea_after.attr("photoownno",photoownno_before); */
 	
 	//textArea photoSubNo로 새로 추가된 행인지 기존 행인지 판별
-	var photosubno_before=$('#subPhotosExplain'+trNumBefore).attr('photosubno');
-	var photosubno_after=$('#subPhotosExplain'+trNumAfter).attr('photosubno'); 
+	//var photosubno_before=$('#subPhotosExplain'+trNumBefore).attr('photosubno');
+	//var photosubno_after=$('#subPhotosExplain'+trNumAfter).attr('photosubno'); 
 	//var photosubno_before=$subTextArea_before.attr('photosubno');
 	//var photosubno_after=$subTextArea_after.attr('photosubno');
-	console.log(trNumBefore,'행 photosubno_before:',photosubno_before,trNumAfter,'행 photosubno_after:',photosubno_after);
-	console.log('photoownno_before:',photoownno_before,'photoownno_after:',photoownno_after);
+	//console.log(trNumBefore,'행 photosubno_before:',photosubno_before,trNumAfter,'행 photosubno_after:',photosubno_after);
+	//console.log('photoownno_before:',photoownno_before,'photoownno_after:',photoownno_after);
 	
 	//실제 파일 순서도 변경해줘야한다.
-	if(photosubno_before=='undefined' && photosubno_after=='undefined'){ //순서변경 후 아래와 위 행 모두 새로 추가된 행일 때
+	/* if(photosubno_before=='undefined' && photosubno_after=='undefined'){ //순서변경 후 아래와 위 행 모두 새로 추가된 행일 때
 		objectValueInterChange(sel_files,trNumBefore,trNumAfter);
 	}else if(photosubno_before!='undefined' && photosubno_after!='undefined'){//순서변경 후 아래와 위 행 모두 기존 행일 때
 		//objectValueInterChange(updateList,trNumBefore,trNumAfter);
@@ -947,7 +936,7 @@
 	}else if(photosubno_before!='undefined' && photosubno_after=='undefined'){//순서변경 후 아래가 새로 추가된 행
 		//objectPropertyChange(updateList,trNumAfter,trNumBefore);
 		objectPropertyChange(sel_files,trNumBefore,trNumAfter);
-	}
+	} */
 	
   }
   
@@ -974,11 +963,6 @@
         $(this).attr('name','subPhotosExplain'+index);
         //$(this).attr('photoownno',index);
       });
-      let trNumAfter = $tr.closest('tr').prevAll().length; //순서 바꾼 후 index, 즉 맨 마지막 번호
-	  if(photosubno_before=='undefined') //새로운 행 일때
-		  arrayLastElemChanger(sel_files,trNumBefore,trNumAfter); 
-	  else //기존 행 일때
-		  arrayLastElemChanger(updateList,trNumBefore,trNumAfter);
   }
     
     
